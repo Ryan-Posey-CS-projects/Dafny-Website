@@ -1,4 +1,4 @@
-# React + TypeScript static site template
+# React + TypeScript static site
 
 React 19 + TypeScript + Bootstrap 5, bundled with webpack, using **HashRouter**
 so the built site runs on any static file server.
