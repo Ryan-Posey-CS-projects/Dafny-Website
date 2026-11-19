@@ -1,0 +1,5 @@
+/* Custom styles on top of Bootstrap */
+
+main {
+  min-height: 50vh;
+}
