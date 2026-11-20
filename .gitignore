@@ -2,5 +2,8 @@ node_modules/
 dist/
 *.log
 .vscode/
-examples/*
-!examples/*.dfy
+package-lock.json
+src/examples/*
+!src/examples/*.dfy
+!src/examples/*.js
+
