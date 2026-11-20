@@ -140,7 +140,10 @@ function MazeCreator(props: { rows: number; cols: number }) {
             );
             const widthByHeight = horizontalSpace + cols * cellSizeByHeight;
             const size = Math.min(availableWidth, widthByHeight);
-            const sizeValue = `${size}px`;
+            const mobileSize = window.matchMedia("(max-width: 767.98px)").matches
+                ? availableWidth
+                : size;
+            const sizeValue = `${mobileSize}px`;
 
             if (grid.style.getPropertyValue("--maze-available-size") !== sizeValue) {
                 grid.style.setProperty("--maze-available-size", sizeValue);
