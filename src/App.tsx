@@ -1,5 +1,5 @@
 import { lazy, Suspense, useState } from 'react'
-import { NavLink, Route, Routes } from 'react-router-dom'
+import { NavLink, Route, Routes, useLocation } from 'react-router-dom'
 // Each route is split into its own chunk and loaded the first time it is
 // visited. See the "Adding a route" section of the README.
 const Home = lazy(() =>
@@ -28,7 +28,10 @@ function PageLoading() {
 
 export default function App() {
   const [isNavExpanded, setIsNavExpanded] = useState(false)
+  const location = useLocation()
   const closeNav = () => setIsNavExpanded(false)
+  const examplesActive =
+    location.pathname === '/maze' || location.pathname === '/code'
 
   return (
     <div className="container py-4 text-center align-items-center">
@@ -63,7 +66,7 @@ export default function App() {
             </li>
             <li className="nav-item dropdown">
               <button
-                className="nav-link dropdown-toggle"
+                className={`nav-link dropdown-toggle${examplesActive ? ' active' : ''}`}
                 type="button"
                 data-bs-toggle="dropdown"
                 aria-expanded="false"
@@ -83,7 +86,7 @@ export default function App() {
                 <li>
                   <NavLink
                     className="dropdown-item"
-                    to="/sources"
+                    to="/code"
                     onClick={closeNav}
                   >
                     Source Code
@@ -101,7 +104,7 @@ export default function App() {
             <Route path="/about" element={<About />} />
             <Route path="/maze" element={<Maze />} />
             <Route
-              path="/sources"
+              path="/code"
               element={<Source />}
             />
             <Route path="*" element={<NotFound />} />
