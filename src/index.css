@@ -4,6 +4,11 @@ main {
   min-height: 50vh;
 }
 
+.site-navigation .nav-link,
+.site-navigation .dropdown-menu {
+  text-align: left;
+}
+
 @media (max-width: 767.98px) {
   .site-navigation {
     position: relative;

@@ -40,7 +40,7 @@ export default function App() {
         aria-label="Main navigation"
       >
         <button
-          className="navbar-toggler ms-auto"
+          className="navbar-toggler"
           type="button"
           aria-controls="primaryNavigation"
           aria-expanded={isNavExpanded}
