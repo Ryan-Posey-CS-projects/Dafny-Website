@@ -1,8 +1,10 @@
 const path = require('path')
 const glob = require('glob')
+const webpack = require('webpack')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 const MiniCssExtractPlugin = require('mini-css-extract-plugin')
 const { PurgeCSSPlugin } = require('purgecss-webpack-plugin')
+const browserProcessPath = path.resolve(__dirname, 'src/browser-process.ts')
 
 /** @param {string} [mode] */
 module.exports = (env, argv) => {
@@ -19,6 +21,9 @@ module.exports = (env, argv) => {
     },
     resolve: {
       extensions: ['.tsx', '.ts', '.js'],
+      alias: {
+        process: browserProcessPath,
+      },
     },
     module: {
       rules: [
@@ -29,6 +34,13 @@ module.exports = (env, argv) => {
             isProduction ? MiniCssExtractPlugin.loader : 'style-loader',
             'css-loader',
           ],
+        },
+        {
+          test: /\.dfy$/i,
+          type: 'asset/resource',
+          generator: {
+            filename: 'assets/sources/[name].[contenthash:8][ext]',
+          },
         },
         {
           test: /\.(png|jpe?g|gif|svg|webp|avif)$/i,
@@ -43,6 +55,9 @@ module.exports = (env, argv) => {
       ],
     },
     plugins: [
+      new webpack.ProvidePlugin({
+        process: [browserProcessPath, 'default'],
+      }),
       new HtmlWebpackPlugin({ template: './src/index.html' }),
       // Production only: extract CSS into its own file and drop the Bootstrap
       // rules that are not used anywhere in src/.

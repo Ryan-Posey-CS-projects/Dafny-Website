@@ -6,6 +6,8 @@ import 'bootstrap/dist/css/bootstrap.min.css'
 // Bootstrap's JS is not bundled by default. To use a data-bs-* component,
 // import only the plugin you need (each registers its own data-api).
 // See the "Bootstrap JavaScript" section of the README.
+import 'bootstrap/js/src/dropdown.js'
+import 'bootstrap/js/src/tab.js'
 import './index.css'
 
 createRoot(document.getElementById('root')!).render(

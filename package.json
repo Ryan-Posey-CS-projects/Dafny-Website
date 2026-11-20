@@ -1,5 +1,5 @@
 {
-  "name": "react-ts-static-template",
+  "name": "Dafny Language Website",
   "private": true,
   "version": "0.1.0",
   "scripts": {
@@ -11,11 +11,13 @@
   "dependencies": {
     "bignumber.js": "^11.1.5",
     "bootstrap": "^5.3.3",
+    "prismjs": "^1.30.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-router-dom": "^7.1.0"
   },
   "devDependencies": {
+    "@types/prismjs": "^1.26.6",
     "@types/react": "^19.1.0",
     "@types/react-dom": "^19.1.0",
     "css-loader": "^7.1.0",
