@@ -1,101 +1,91 @@
-# React + TypeScript static site
+# Dafny Website
 
-React 19 + TypeScript + Bootstrap 5, bundled with webpack, using **HashRouter**
-so the built site runs on any static file server.
+A React and TypeScript website for learning Dafny, with an interactive maze
+solver and a source browser that can grow to include more examples. It uses
+Bootstrap 5, webpack, and React Router's `HashRouter`, so the built site works
+on static hosting.
 
-## Commands
+## Pages
+
+| Page | Route |
+| --- | --- |
+| Home | `#/` |
+| About Dafny | `#/about` |
+| Maze Solver | `#/maze` |
+| Source Code | `#/code` |
+
+## Local development
 
 ```sh
-npm install       # install dependencies
-npm run dev       # dev server with hot reload at http://localhost:8080
-npm run build     # type-check and build production files into dist/
-npm run typecheck # type-check only
+npm install
+npm run dev       # Start the development server at http://localhost:8080
+npm run typecheck # Type-check TypeScript
+npm run build     # Build the production site into dist/
 ```
+
+`npm run build` creates the production site but does not run the typecheck.
+Run `npm run typecheck` separately when you want to check TypeScript.
 
 ## Deploying
 
-1. Run `npm run build`.
-2. Upload the **contents of `dist/`** to the CS Web server.
+### GitHub Pages
 
-Everything in `dist/` uses relative URLs, so it works from the server root or
-from a subdirectory.
+Deployment is manual; pushing commits does not publish the site.
 
-## Structure
+1. In GitHub, open **Actions** and select **Deploy to GitHub Pages**.
+2. Select **Run workflow**, choose the branch to publish, and run it.
+3. The workflow builds the site and publishes the contents of `dist/` to the
+   `gh-pages` branch.
 
-```
+For the first deployment, configure **Settings → Pages** to deploy from the
+`gh-pages` branch and `/(root)`. The workflow creates the branch when it runs.
+
+### CS Web server
+
+Run `npm run build`, then upload the **contents of `dist/`** to the server.
+The build uses relative asset URLs, so it can be hosted at the server root or
+in a subdirectory.
+
+## Project structure
+
+```text
 src/
-  main.tsx      # entry point: mounts <HashRouter><App /></HashRouter>, imports Bootstrap CSS
-  App.tsx       # shell (nav + <Routes>); each page is lazy-loaded as its own chunk
+  App.tsx              # Navigation and routes
+  main.tsx             # React entry point and HashRouter
   pages/
-    Home.tsx     # /
-    About.tsx    # /about
-    NotFound.tsx # 404 fallback
-  imgs/
-    dafny-favicon.svg # site icon, linked from index.html
-  index.css     # custom styles (loaded after Bootstrap)
-  index.html    # HTML template (webpack injects the bundle and the favicon URL)
+    Home.tsx           # Landing page
+    About.tsx          # About Dafny
+    Maze.tsx           # Interactive maze solver
+    SourcesPage.tsx    # Loads Dafny source files
+    Source.tsx         # Project/file selection and source display
+    SourceCodePage.tsx # Syntax-highlighted source viewer
+    NotFound.tsx       # Fallback for unknown routes
+  examples/
+    maze.dfy           # Maze solver Dafny source
+    Queue.dfy          # Queue Dafny source
+  index.css            # Site styles
+  index.html           # Webpack HTML template
 webpack.config.js
-tsconfig.json
 ```
 
-## Styling with Bootstrap
+## Adding Dafny examples
 
-Production builds ship only the Bootstrap rules you actually use: webpack runs
-PurgeCSS over the extracted CSS (see `webpack.config.js`), keeping every class
-found in `src/` plus a small safelist of classes that Bootstrap's JS adds at
-runtime (transition states, `active` from `NavLink`, tooltip/popover markup).
-If you build class names dynamically (template literals, component libraries),
-add them to that `safelist` or they will be stripped. Dev builds keep the full
-CSS.
+To add source code to the browser:
 
-## Bootstrap JavaScript
+1. Add the `.dfy` file under `src/examples/`.
+2. Import it in `src/pages/SourcesPage.tsx`.
+3. Add it to the `sourceProjects` list, grouping it with related files or
+   creating a new project entry.
 
-Bootstrap's JS (dropdowns, modals, tooltips, ...) is **not** bundled by
-default. Import only the components you use — each file registers its own
-`data-bs-*` listeners, so the markup works as soon as it is imported:
-
-```ts
-import Modal from 'bootstrap/js/src/modal.js'
-import Dropdown from 'bootstrap/js/src/dropdown.js' // also pulls in Popper
-```
+The webpack configuration handles `.dfy` files as assets. For an example that
+needs its own interactive UI, create a page component and register a route as
+described below.
 
 ## Adding a route
 
-1. Create `src/pages/YourPage.tsx` with a default export.
-2. Register it in `src/App.tsx` — one lazy import plus one `<Route>`:
+1. Create a page component in `src/pages/`.
+2. Lazy-load it and add a `<Route>` in `src/App.tsx`.
+3. Link to it with a React Router `Link` or `NavLink`.
 
-   ```tsx
-   const YourPage = lazy(() =>
-     import(/* webpackChunkName: "your-page" */ './pages/YourPage'),
-   )
-   // inside <Routes>:
-   <Route path="/your-page" element={<YourPage />} />
-   ```
-
-3. Link to it with `<NavLink to="/your-page">`.
-
-Every page becomes its own chunk, fetched the first time someone visits it,
-and webpack automatically extracts code shared between pages into a shared
-chunk, so lazy loading never duplicates code.
-
-## Adding assets
-
-Import images/fonts in TS/TSX and they get hashed filenames automatically:
-
-```ts
-import logo from './logo.png'
-```
-
-## Favicon
-
-The favicon is referenced from the HTML template with `<%= require(...) %>`,
-so webpack emits the file and the `href` always matches its content hash:
-
-```html
-<link rel="icon" href="<%= require('./imgs/dafny-favicon.svg') %>" type="image/svg+xml">
-```
-
-To swap the icon, replace `src/imgs/dafny-favicon.svg` (keep the name, or
-update the `require` path). No import in `main.tsx` is needed. Browsers that
-do not support SVG icons can be given an additional `<link>` to a `.png`
-file with `rel="alternate icon"`.
+The site uses hash-based routes, so use paths such as `/your-page`; the browser
+URL will appear as `#/your-page`.
