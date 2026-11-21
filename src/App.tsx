@@ -27,6 +27,16 @@ const NotFound = lazy(() =>
     import(/* webpackChunkName: "not-found" */ './pages/NotFound'),
 )
 
+const pageTitles: Record<string, string> = {
+    '/': 'Home',
+    '/about': 'About',
+    '/documents': 'Documents',
+    '/employability': 'Employability',
+    '/install': 'Install',
+    '/maze': 'Maze Solver',
+    '/code': 'Source Code',
+}
+
 function PageLoading() {
     return (
         <div className="card">
@@ -42,6 +52,11 @@ export default function App() {
     const closeNav = () => setIsNavExpanded(false)
     const examplesActive =
         location.pathname === '/maze' || location.pathname === '/code'
+
+    useEffect(() => {
+        const pageName = pageTitles[location.pathname] ?? 'Page Not Found'
+        document.title = `${pageName} - Dafny the Language`
+    }, [location.pathname])
 
     useEffect(() => {
         const sectionId = location.hash.slice(1)
