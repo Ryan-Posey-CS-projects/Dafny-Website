@@ -20,6 +20,7 @@ const defaultMazeLayout = [
 ];
 
 function Maze() {
+    newMaze = true;
     const [rows, setRows] = useState(15);
     const [cols, setCols] = useState(15);
 
