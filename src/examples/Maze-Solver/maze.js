@@ -1,4 +1,4 @@
-// Dafny program maze.dfy compiled into JavaScript
+// Dafny program Maze.dfy compiled into JavaScript
 // Copyright by the contributors to the Dafny Project
 // SPDX-License-Identifier: MIT
 

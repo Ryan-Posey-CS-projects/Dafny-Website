@@ -1,6 +1,11 @@
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
+import introSourceUrl from '../examples/Intro.dfy'
+import DafnyCodeViewer, { type SourceColorMode } from './DafnyCodeViewer'
 
 function Home() {
+    const [codeColorMode, setCodeColorMode] = useState<SourceColorMode>('dark')
+
     return (
         <div className="card">
             <div className="card-body">
@@ -21,8 +26,73 @@ function Home() {
                         <Link className="btn btn-outline-primary" to="/code">
                             Explore Dafny Source
                         </Link>
+                        <Link className="btn btn-outline-primary" to="/install">
+                            Install Dafny
+                        </Link>
                     </div>
                 </section>
+
+                <div className="row g-3 text-start mt-2 align-items-stretch">
+                    <div className="col-lg-7">
+                        <section className="card h-100">
+                            <div className="card-body">
+                                <h2 className="h5 card-title">
+                                    Specifications live next to your code
+                                </h2>
+                                <p className="card-text">
+                                    A <code>method</code> states what it promises with{' '}
+                                    <code>requires</code> and <code>ensures</code> clauses.
+                                    Dafny proves that the body delivers on those promises for
+                                    every possible input — no test suite required.{' '}
+                                    <Link to="/documents">Learn the language</Link> with the
+                                    official tutorial.
+                                </p>
+                                <DafnyCodeViewer
+                                    filename="Intro.dfy"
+                                    language="Dafny"
+                                    sourceUrl={introSourceUrl}
+                                    colorMode={codeColorMode}
+                                    onColorModeChange={setCodeColorMode}
+                                />
+                            </div>
+                        </section>
+                    </div>
+                    <div className="col-lg-5">
+                        <section className="card h-100">
+                            <div className="card-body">
+                                <h2 className="h5 card-title">What the verifier checks</h2>
+                                <ul className="ps-3 text-body-secondary">
+                                    <li className="mb-2">
+                                        Array and sequence indices stay within bounds.
+                                    </li>
+                                    <li className="mb-2">
+                                        No null references are dereferenced.
+                                    </li>
+                                    <li className="mb-2">
+                                        Division never sees a zero divisor.
+                                    </li>
+                                    <li className="mb-2">
+                                        Preconditions hold at every call site, so bad inputs
+                                        are rejected at compile time.
+                                    </li>
+                                    <li className="mb-2">
+                                        Loop invariants and termination measures are proven
+                                        on every loop.
+                                    </li>
+                                    <li>
+                                        Your own <code>assert</code> statements are proven
+                                        along the way.
+                                    </li>
+                                </ul>
+                                <p className="small mb-0 mt-3">
+                                    See the{' '}
+                                    <Link to="/documents">error and warning catalog</Link>{' '}
+                                    for what each verifier message means.
+                                </p>
+                            </div>
+                        </section>
+                    </div>
+                </div>
 
                 <div className="row g-3 text-start mt-2">
                     <div className="col-md-6">
@@ -31,7 +101,25 @@ function Home() {
                                 <h2 className="h5 card-title">Describe what your code should do</h2>
                                 <p className="card-text mb-0">
                                     Dafny lets you express expectations about your program, such
-                                    as preconditions, postconditions, and loop invariants.
+                                    as preconditions, postconditions, and loop invariants.{' '}
+                                    <Link to="/about">How Dafny checks them</Link> is covered
+                                    on the About page.
+                                </p>
+                            </div>
+                        </section>
+                    </div>
+                    <div className="col-md-6">
+                        <section className="card h-100">
+                            <div className="card-body">
+                                <h2 className="h5 card-title">Compile to real languages</h2>
+                                <p className="card-text mb-0">
+                                    Once a program verifies, Dafny translates it to C#, Java,
+                                    JavaScript, Python, Go, or Rust — so verified code runs in
+                                    real projects. See the{' '}
+                                    <Link to="/install#install-translation">
+                                        translation targets
+                                    </Link>{' '}
+                                    for what each toolchain needs.
                                 </p>
                             </div>
                         </section>
@@ -41,13 +129,85 @@ function Home() {
                             <div className="card-body">
                                 <h2 className="h5 card-title">Explore verification in action</h2>
                                 <p className="card-text mb-0">
-                                    Try the maze example, then browse its Dafny source to see how
+                                    Try the <Link to="/maze">maze example</Link>, then{' '}
+                                    <Link to="/code">browse its Dafny source</Link> to see how
                                     a program and its specifications fit together.
                                 </p>
                             </div>
                         </section>
                     </div>
+                    <div className="col-md-6">
+                        <section className="card h-100">
+                            <div className="card-body">
+                                <h2 className="h5 card-title">Learn at your own pace</h2>
+                                <p className="card-text mb-0">
+                                    Follow the{' '}
+                                    <Link to="/documents">
+                                        getting-started tutorial and quick reference
+                                    </Link>
+                                    , or read the research papers behind the language — all
+                                    collected on the Documents page.
+                                </p>
+                            </div>
+                        </section>
+                    </div>
                 </div>
+
+                <section className="mt-4" aria-labelledby="home-explore">
+                    <h2 className="h4" id="home-explore">
+                        Explore the site
+                    </h2>
+                    <div className="row g-3 text-start">
+                        <div className="col-sm-6 col-lg-3">
+                            <div className="card h-100">
+                                <div className="card-body">
+                                    <h3 className="h6 card-title">
+                                        <Link to="/install">Install</Link>
+                                    </h3>
+                                    <p className="small text-body-secondary mb-0">
+                                        Download Dafny and verify your first program.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="col-sm-6 col-lg-3">
+                            <div className="card h-100">
+                                <div className="card-body">
+                                    <h3 className="h6 card-title">
+                                        <Link to="/about">About</Link>
+                                    </h3>
+                                    <p className="small text-body-secondary mb-0">
+                                        What Dafny is, its history, and how it compares.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="col-sm-6 col-lg-3">
+                            <div className="card h-100">
+                                <div className="card-body">
+                                    <h3 className="h6 card-title">
+                                        <Link to="/documents">Documents</Link>
+                                    </h3>
+                                    <p className="small text-body-secondary mb-0">
+                                        Manuals, tutorials, and academic papers.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="col-sm-6 col-lg-3">
+                            <div className="card h-100">
+                                <div className="card-body">
+                                    <h3 className="h6 card-title">
+                                        <Link to="/employability">Employability</Link>
+                                    </h3>
+                                    <p className="small text-body-secondary mb-0">
+                                        Where Dafny skills show up in industry.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
             </div>
         </div>
     )

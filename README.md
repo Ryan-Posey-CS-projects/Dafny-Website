@@ -11,6 +11,9 @@ static site.
 | --- | --- |
 | Home | `#/` |
 | About Dafny | `#/about` |
+| Documents | `#/documents` |
+| Install | `#/install` |
+| Employability | `#/employability` |
 | Maze Solver | `#/maze` |
 | Source Code | `#/code` |
 
@@ -26,6 +29,7 @@ npm install
 | Command | Description |
 | --- | --- |
 | `npm run dev` | Start the development server at <http://localhost:8080>. |
+| `npm start` | Serve the production build at <http://localhost:8080>. |
 | `npm run typecheck` | Check TypeScript types without building. |
 | `npm run build` | Create the production site in `dist/`. |
 
@@ -57,37 +61,59 @@ subdirectory.
   workflows/
     deploy.yml          # Manual GitHub Pages deployment
 src/
-  App.tsx               # Navigation and routes
+  App.tsx               # Navigation and lazy-loaded routes
   main.tsx              # React entry point and HashRouter
   browser-process.ts    # Browser-compatible process shim
   index.css             # Site styles
-  index.html            # Webpack HTML template
+  index.html            # Webpack HTML template (favicon included here)
   assets.d.ts           # Asset module declarations
+  imgs/                 # Favicon (SVG + PNG)
   pages/
-    Home.tsx            # Landing page
+    Home.tsx            # Landing page with code sample
     About.tsx           # About Dafny
+    Documents.tsx       # Docs, tutorials, and papers
+    Install.tsx         # Installation guide
+    Employability.tsx   # Careers and skills
     Maze.tsx            # Interactive maze solver
     SourcesPage.tsx     # Loads Dafny source files
     Source.tsx          # Project/file selection and display
     SourceCodePage.tsx  # Syntax-highlighted source viewer
+    DafnyCodeViewer.tsx # Shared code viewer (Dafny grammar lives here)
     NotFound.tsx        # Fallback for unknown routes
   examples/
-    maze.dfy            # Maze solver Dafny source
-    Queue.dfy           # Queue Dafny source
+    Hello.dfy           # Install page verification sample
+    Intro.dfy           # Home page code sample
+    Maze-Solver/
+      Maze.dfy          # Maze solver Dafny source
+      Queue.dfy         # Queue Dafny source
+      Maze.js           # Maze solver compiled to JavaScript
+      Maze-js.dtr       # Dafny test/result artifact
 package.json            # Dependencies and commands
 tsconfig.json           # TypeScript configuration
-webpack.config.js       # Build and asset configuration
+webpack.config.js       # Build, asset, and PurgeCSS configuration
 ```
 
-## Adding Dafny examples
+## Adding Dafny code
+
+All Dafny code shown on the site lives in `.dfy` files under `src/examples/`,
+never inline in TSX. Webpack copies `.dfy` files to `dist/` as assets, and
+`DafnyCodeViewer` displays one either by fetching its URL (`sourceUrl`) or from
+a string (`sourceCode`, avoid for new code). To add syntax highlighting rules,
+update the Dafny grammar in `src/pages/DafnyCodeViewer.tsx`.
+
+### In the source browser
 
 1. Add the `.dfy` file under `src/examples/`.
 2. Import it in `src/pages/SourcesPage.tsx`.
 3. Add it to the `sourceProjects` list, grouping it with related files or
    creating a new project entry.
 
-Webpack copies `.dfy` files to `dist/` as assets. To add syntax highlighting
-rules, update the Dafny grammar in `src/pages/SourceCodePage.tsx`.
+### Embedded in a page
+
+1. Add the `.dfy` file under `src/examples/`.
+2. Import its URL in the page: `import sampleUrl from '../examples/Sample.dfy'`.
+3. Pass it to `DafnyCodeViewer` as `sourceUrl`, as Home and Install do with
+   `Intro.dfy` and `Hello.dfy`.
 
 ## Adding a route
 

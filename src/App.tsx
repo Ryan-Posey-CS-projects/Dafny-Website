@@ -1,4 +1,4 @@
-import { lazy, Suspense, useState } from 'react'
+import { lazy, Suspense, useEffect, useState } from 'react'
 import { NavLink, Route, Routes, useLocation } from 'react-router-dom'
 // Each route is split into its own chunk and loaded the first time it is
 // visited. See the "Adding a route" section of the README.
@@ -7,6 +7,15 @@ const Home = lazy(() =>
 )
 const About = lazy(() =>
     import(/* webpackChunkName: "about" */ './pages/About'),
+)
+const Documents = lazy(() =>
+    import(/* webpackChunkName: "documents" */ './pages/Documents'),
+)
+const Employability = lazy(() =>
+    import(/* webpackChunkName: "employability" */ './pages/Employability'),
+)
+const Install = lazy(() =>
+    import(/* webpackChunkName: "install" */ './pages/Install'),
 )
 const Maze = lazy(() =>
     import(/* webpackChunkName: "maze" */ './pages/Maze'),
@@ -28,10 +37,52 @@ function PageLoading() {
 
 export default function App() {
     const [isNavExpanded, setIsNavExpanded] = useState(false)
+    const [showScrollTop, setShowScrollTop] = useState(false)
     const location = useLocation()
     const closeNav = () => setIsNavExpanded(false)
     const examplesActive =
         location.pathname === '/maze' || location.pathname === '/code'
+
+    useEffect(() => {
+        const sectionId = location.hash.slice(1)
+        if (!sectionId) return
+
+        let observer: MutationObserver | undefined
+        const scrollToSection = () => {
+            const section = document.getElementById(decodeURIComponent(sectionId))
+            if (!section) return false
+
+            section.scrollIntoView({ behavior: 'smooth', block: 'start' })
+            return true
+        }
+
+        if (scrollToSection()) return
+
+        observer = new MutationObserver(() => {
+            if (scrollToSection()) observer?.disconnect()
+        })
+        observer.observe(document.querySelector('main') ?? document.body, {
+            childList: true,
+            subtree: true,
+        })
+
+        return () => observer?.disconnect()
+    }, [location.pathname, location.hash])
+
+    useEffect(() => {
+        if (location.hash) return
+        window.scrollTo(0, 0)
+    }, [location.key, location.hash])
+
+    useEffect(() => {
+        const updateScrollTopVisibility = () => {
+            setShowScrollTop(window.scrollY > 0)
+        }
+
+        updateScrollTopVisibility()
+        window.addEventListener('scroll', updateScrollTopVisibility, { passive: true })
+        return () => window.removeEventListener('scroll', updateScrollTopVisibility)
+    }, [])
 
     return (
         <div className="container py-4 text-center align-items-center">
@@ -62,6 +113,21 @@ export default function App() {
                         <li className="nav-item">
                             <NavLink className="nav-link" to="/about" onClick={closeNav}>
                                 About
+                            </NavLink>
+                        </li>
+                        <li className="nav-item">
+                            <NavLink className="nav-link" to="/documents" onClick={closeNav}>
+                                Documents
+                            </NavLink>
+                        </li>
+                        <li className="nav-item">
+                            <NavLink className="nav-link" to="/install" onClick={closeNav}>
+                                Install
+                            </NavLink>
+                        </li>
+                        <li className="nav-item">
+                            <NavLink className="nav-link" to="/employability" onClick={closeNav}>
+                                Employability
                             </NavLink>
                         </li>
                         <li className="nav-item dropdown">
@@ -102,6 +168,9 @@ export default function App() {
                     <Routes>
                         <Route path="/" element={<Home />} />
                         <Route path="/about" element={<About />} />
+                        <Route path="/documents" element={<Documents />} />
+                        <Route path="/employability" element={<Employability />} />
+                        <Route path="/install" element={<Install />} />
                         <Route path="/maze" element={<Maze />} />
                         <Route
                             path="/code"
@@ -111,6 +180,15 @@ export default function App() {
                     </Routes>
                 </Suspense>
             </main>
+            <button
+                className={`scroll-to-top btn btn-primary shadow${showScrollTop ? ' is-visible' : ''}`}
+                type="button"
+                aria-label="Scroll to top"
+                tabIndex={showScrollTop ? 0 : -1}
+                onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+            >
+                <span aria-hidden="true">↑</span>
+            </button>
         </div>
     )
 }

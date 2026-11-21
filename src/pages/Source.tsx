@@ -1,4 +1,5 @@
 import { useEffect, useId, useState } from "react";
+import { strToU8, zipSync } from "fflate";
 import SourceCodePage, { type SourceColorMode } from "./SourceCodePage";
 
 const colorModeStorageKey = "dafny-source-viewer-color-mode";
@@ -6,7 +7,7 @@ const prefersDarkColorScheme = "(prefers-color-scheme: dark)";
 
 export type SourceTab = {
   label: string;
-  sourceCode: string;
+  sourceUrl: string;
 };
 
 export type SourceProject = {
@@ -21,6 +22,11 @@ export type SourceProps = {
 
 export default function Source({ projects }: SourceProps) {
   const tabPrefix = useId().replace(/:/g, "");
+  const [downloadState, setDownloadState] = useState<
+    | { projectId: string; status: "downloading" }
+    | { projectId: string; status: "error"; message: string }
+    | null
+  >(null);
   const [systemColorMode, setSystemColorMode] = useState<SourceColorMode>(
     () =>
       typeof window !== "undefined" &&
@@ -59,6 +65,44 @@ export default function Source({ projects }: SourceProps) {
     setColorModeOverride(nextColorMode);
   };
 
+  const downloadProjectFiles = async (project: SourceProject) => {
+    setDownloadState({ projectId: project.id, status: "downloading" });
+
+    try {
+      const fileEntries = await Promise.all(
+        project.files.map(async ({ label, sourceUrl }) => {
+          const response = await fetch(sourceUrl);
+          if (!response.ok) {
+            throw new Error(
+              `Failed to load ${label}: ${response.status} ${response.statusText}`,
+            );
+          }
+
+          return [label, strToU8(await response.text())] as const;
+        }),
+      );
+      const archive = zipSync(Object.fromEntries(fileEntries));
+      const archiveUrl = URL.createObjectURL(
+        new Blob([archive], { type: "application/zip" }),
+      );
+      const downloadLink = document.createElement("a");
+      downloadLink.href = archiveUrl;
+      downloadLink.download = `${project.id}.zip`;
+      downloadLink.click();
+      window.setTimeout(() => URL.revokeObjectURL(archiveUrl), 1000);
+      setDownloadState(null);
+    } catch (downloadError) {
+      setDownloadState({
+        projectId: project.id,
+        status: "error",
+        message:
+          downloadError instanceof Error
+            ? downloadError.message
+            : String(downloadError),
+      });
+    }
+  };
+
   if (projects.length === 0) {
     return <p>No source code was provided.</p>;
   }
@@ -95,8 +139,7 @@ export default function Source({ projects }: SourceProps) {
           const panelId = `${tabPrefix}-project-panel-${index}`;
           const selectedFileLabel = selectedFileByProject[project.id];
           const selectedFile =
-            project.files.find((file) => file.label === selectedFileLabel) ??
-            project.files[0];
+            project.files.find((file) => file.label === selectedFileLabel);
           const fileSelectId = `${panelId}-file-select`;
 
           return (
@@ -108,16 +151,29 @@ export default function Source({ projects }: SourceProps) {
               tabIndex={0}
               key={project.id}
             >
-              {selectedFile ? (
+              {project.files.length > 0 ? (
                 <>
                   <div className="mb-3">
-                    <label className="form-label" htmlFor={fileSelectId}>
-                      File
-                    </label>
+                    <div className="d-flex align-items-center justify-content-center gap-2 mb-2">
+                      <label className="visually-hidden" htmlFor={fileSelectId}>
+                        Select a source file
+                      </label>
+                      <button
+                        type="button"
+                        className="btn btn-outline-primary"
+                        disabled={downloadState?.status === "downloading"}
+                        onClick={() => void downloadProjectFiles(project)}
+                      >
+                        {downloadState?.projectId === project.id &&
+                        downloadState.status === "downloading"
+                          ? "Preparing ZIP…"
+                          : "Download project files"}
+                      </button>
+                    </div>
                     <select
                       className="form-select"
                       id={fileSelectId}
-                      value={selectedFile.label}
+                      value={selectedFile?.label ?? ""}
                       onChange={(event) =>
                         setSelectedFileByProject((selectedFiles) => ({
                           ...selectedFiles,
@@ -125,20 +181,33 @@ export default function Source({ projects }: SourceProps) {
                         }))
                       }
                     >
+                      <option value="" disabled hidden>
+                        Select a file to view its source code...
+                      </option>
                       {project.files.map((file) => (
                         <option key={file.label} value={file.label}>
                           {file.label}
                         </option>
                       ))}
                     </select>
+                    {downloadState?.projectId === project.id &&
+                      downloadState.status === "error" && (
+                        <p className="text-danger mt-2 mb-0" role="alert">
+                          Could not download this project's files: {downloadState.message}
+                        </p>
+                      )}
                   </div>
-                  <SourceCodePage
-                    title={selectedFile.label}
-                    language="Dafny"
-                    sourceCode={selectedFile.sourceCode}
-                    colorMode={colorMode}
-                    onColorModeChange={handleColorModeChange}
-                  />
+                  {selectedFile ? (
+                    <SourceCodePage
+                      title={selectedFile.label}
+                      language="Dafny"
+                      sourceUrl={selectedFile.sourceUrl}
+                      colorMode={colorMode}
+                      onColorModeChange={handleColorModeChange}
+                    />
+                  ) : (
+                    <p className="text-body-secondary"></p>
+                  )}
                 </>
               ) : (
                 <p>No source files are available for this project.</p>
