@@ -1,5 +1,5 @@
 import { useLayoutEffect, useRef, useState } from "react";
-
+let newMaze = true;
 const gridSizeOptions = Array.from({ length: 16 }, (_, index) => index + 5);
 const defaultMazeLayout = [
     "S      ########",
@@ -80,7 +80,7 @@ function MazeCreator(props: { rows: number; cols: number }) {
     const [end, setEnd] = useState<Point>([cols - 1, rows - 1]);
     const [solveResult, setSolveResult] = useState<SolveResult | null>(null);
     const maze: boolean[][] =
-        rows === defaultMazeLayout.length && cols === defaultMazeLayout[0].length
+        rows === defaultMazeLayout.length && cols === defaultMazeLayout[0].length && newMaze
             ? defaultMazeLayout.map((line) =>
                 Array.from(line, (cell) => cell === "#")
             )
@@ -96,6 +96,7 @@ function MazeCreator(props: { rows: number; cols: number }) {
 
         let resizeFrame = 0;
         const updateGridSize = () => {
+            newMaze = false;
             const gridTop = grid.getBoundingClientRect().top;
             const pixels = (value: string) => Number.parseFloat(value) || 0;
             const resultMessage = solveResultRef.current;
@@ -104,19 +105,19 @@ function MazeCreator(props: { rows: number; cols: number }) {
                 : null;
             const resultSpace =
                 window.matchMedia("(max-width: 767.98px)").matches &&
-                resultMessage &&
-                resultStyle
-                ? resultMessage.getBoundingClientRect().height +
-                  pixels(resultStyle.marginTop) +
-                  pixels(resultStyle.marginBottom)
-                : 0;
+                    resultMessage &&
+                    resultStyle
+                    ? resultMessage.getBoundingClientRect().height +
+                    pixels(resultStyle.marginTop) +
+                    pixels(resultStyle.marginBottom)
+                    : 0;
             const availableHeight = Math.max(
                 0,
                 window.innerHeight -
-                    gridTop -
-                    solveButton.offsetHeight -
-                    64 -
-                    resultSpace,
+                gridTop -
+                solveButton.offsetHeight -
+                64 -
+                resultSpace,
             );
             const availableWidth = grid.parentElement?.clientWidth ?? window.innerWidth;
             const gridStyle = window.getComputedStyle(grid);
@@ -239,7 +240,6 @@ function MazeCreator(props: { rows: number; cols: number }) {
 
                     const target = event.target.closest(".maze-cell");
                     if (!(target instanceof HTMLInputElement) || target.checked) return;
-
                     const row = Number(target.dataset.row);
                     const col = Number(target.dataset.col);
                     if (!Number.isInteger(row) || !Number.isInteger(col)) return;
