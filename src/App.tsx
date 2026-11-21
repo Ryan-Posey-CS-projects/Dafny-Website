@@ -80,7 +80,7 @@ export default function App() {
                     to="/maze"
                     onClick={closeNav}
                   >
-                    Maze
+                    Maze Solver
                   </NavLink>
                 </li>
                 <li>
