@@ -219,6 +219,7 @@ main {
 .source-code-viewer .token.selector,
 .source-code-viewer .token.important,
 .source-code-viewer .token.atrule,
+.source-code-viewer .token.annotation,
 .source-code-viewer .token.keyword,
 .source-code-viewer .token.builtin {
   color: var(--code-keyword);
