@@ -1,0 +1,60 @@
+main {
+    min-height: 50vh;
+}
+
+.site-navigation .nav-link,
+.site-navigation .dropdown-menu {
+    text-align: left;
+}
+
+.comparison-table {
+    width: 100%;
+    table-layout: fixed;
+}
+
+.comparison-table th,
+.comparison-table td {
+    overflow-wrap: anywhere;
+}
+
+.scroll-to-top {
+    position: fixed;
+    z-index: 1090;
+    right: max(1rem, env(safe-area-inset-right));
+    bottom: max(1rem, env(safe-area-inset-bottom));
+    width: 3rem;
+    height: 3rem;
+    padding: 0;
+    border-radius: 50%;
+    font-size: 1.5rem;
+    line-height: 1;
+    opacity: 0;
+    transform: translateY(0.5rem);
+    visibility: hidden;
+    transition: opacity 1000ms ease, transform 1000ms ease, visibility 1000ms;
+}
+
+.scroll-to-top.is-visible {
+    opacity: 1;
+    transform: translateY(0);
+    visibility: visible;
+}
+
+@media (max-width: 767.98px) {
+    .site-navigation {
+        position: relative;
+        z-index: 1030;
+    }
+
+    .site-navigation .navbar-collapse {
+        position: absolute;
+        top: calc(100% + 0.5rem);
+        left: 0;
+        width: 100%;
+        padding: 0.5rem;
+        border: var(--bs-border-width) solid var(--bs-border-color-translucent);
+        border-radius: var(--bs-border-radius);
+        background-color: var(--bs-tertiary-bg);
+        box-shadow: var(--bs-box-shadow);
+    }
+}
