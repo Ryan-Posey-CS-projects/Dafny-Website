@@ -24,7 +24,7 @@ export default function Source({ projects }: SourceProps) {
   const [systemColorMode, setSystemColorMode] = useState<SourceColorMode>(
     () =>
       typeof window !== "undefined" &&
-      window.matchMedia(prefersDarkColorScheme).matches
+        window.matchMedia(prefersDarkColorScheme).matches
         ? "dark"
         : "light",
   );
