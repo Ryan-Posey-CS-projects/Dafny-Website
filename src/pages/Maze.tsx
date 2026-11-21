@@ -28,7 +28,7 @@ function Maze() {
             <div className="card-body">
                 <h1 className="card-title">Maze Solver</h1>
                 <p className="card-text">
-                    Welcome to the Maze Solver!
+                    Prepare to be amazed!
                 </p>
                 <div>
                     <p>
