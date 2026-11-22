@@ -1,5 +1,5 @@
 import { useState } from "react";
-import helloSourceUrl from "../examples/Hello.dfy";
+import helloSourceUrl from "../examples/beginner/Hello.dfy";
 import DafnyCodeViewer, { type SourceColorMode } from "./DafnyCodeViewer";
 
 function Install() {

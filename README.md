@@ -81,9 +81,12 @@ src/
     DafnyCodeViewer.tsx # Shared code viewer (Dafny grammar lives here)
     NotFound.tsx        # Fallback for unknown routes
   examples/
-    Hello.dfy           # Install page verification sample
-    Intro.dfy           # Home page code sample
-    Maze-Solver/
+    beginner/
+      Hello.dfy         # Install page verification sample
+      firstprog.dfy     # HelloWorld source browser example
+      Intro.dfy         # Home page code sample
+      sumOfTwoEvens.dfy # Sum of two evens source browser example
+    maze-solver/
       Maze.dfy          # Maze solver Dafny source
       Queue.dfy         # Queue Dafny source
       Maze.js           # Maze solver compiled to JavaScript
@@ -95,23 +98,26 @@ webpack.config.js       # Build, asset, and PurgeCSS configuration
 
 ## Adding Dafny code
 
-All Dafny code shown on the site lives in `.dfy` files under `src/examples/`,
-never inline in TSX. Webpack copies `.dfy` files to `dist/` as assets, and
+All Dafny code shown on the site lives in project folders under
+`src/examples/`, never inline in TSX. Webpack copies `.dfy` files to `dist/` as assets, and
 `DafnyCodeViewer` displays one either by fetching its URL (`sourceUrl`) or from
 a string (`sourceCode`, avoid for new code). To add syntax highlighting rules,
 update the Dafny grammar in `src/pages/DafnyCodeViewer.tsx`.
 
 ### In the source browser
 
-1. Add the `.dfy` file under `src/examples/`.
+1. Add the `.dfy` file to the appropriate project folder, such as
+   `src/examples/beginner/` or `src/examples/maze-solver/`.
 2. Import it in `src/pages/SourcesPage.tsx`.
 3. Add it to the `sourceProjects` list, grouping it with related files or
    creating a new project entry.
 
 ### Embedded in a page
 
-1. Add the `.dfy` file under `src/examples/`.
-2. Import its URL in the page: `import sampleUrl from '../examples/Sample.dfy'`.
+1. Add the `.dfy` file under `src/examples/beginner/` or another matching
+   project folder.
+2. Import its URL in the page:
+   `import sampleUrl from '../examples/beginner/Sample.dfy'`.
 3. Pass it to `DafnyCodeViewer` as `sourceUrl`, as Home and Install do with
    `Intro.dfy` and `Hello.dfy`.
 

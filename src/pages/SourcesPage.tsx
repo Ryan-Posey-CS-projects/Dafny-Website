@@ -1,9 +1,9 @@
-import mazeSourceUrl from "../examples/Maze-Solver/Maze.dfy";
-import queueSourceUrl from "../examples/Maze-Solver/Queue.dfy";
-import sumOfTwoEvensSourceUrl from "../examples/sumOfTwoEvens.dfy";
-import helloWorldSourceUrl from "../examples/firstprog.dfy"
-import helloSourceUrl from "../examples/Hello.dfy"
-import introSourceUrl from "../examples/Intro.dfy"
+import mazeSourceUrl from "../examples/maze-solver/Maze.dfy";
+import queueSourceUrl from "../examples/maze-solver/Queue.dfy";
+import sumOfTwoEvensSourceUrl from "../examples/beginner/sumOfTwoEvens.dfy";
+import helloWorldSourceUrl from "../examples/beginner/firstprog.dfy";
+import helloSourceUrl from "../examples/beginner/Hello.dfy";
+import introSourceUrl from "../examples/beginner/Intro.dfy";
 
 import Source from "./Source";
 

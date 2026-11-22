@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import introSourceUrl from '../examples/Intro.dfy'
+import introSourceUrl from '../examples/beginner/Intro.dfy'
 import DafnyCodeViewer, { type SourceColorMode } from './DafnyCodeViewer'
 
 function Home() {
