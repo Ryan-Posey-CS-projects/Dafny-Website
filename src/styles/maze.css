@@ -50,7 +50,7 @@
 .maze-grid {
     display: grid;
     gap: 0.25rem;
-    width: max(min(50vh, var(--maze-available-size, 100vmin)), 400px);
+    width: min(max(min(50vh, var(--maze-available-size, 100vmin)), 400px), 100%);
     margin: 0 auto;
     padding: 0.75rem;
     border: 1px solid var(--bs-tertiary-color);
