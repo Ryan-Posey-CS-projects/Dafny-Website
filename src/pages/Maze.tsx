@@ -1,6 +1,6 @@
-import { useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 let newMaze = true;
-const gridSizeOptions = Array.from({ length: 16 }, (_, index) => index + 5);
+const gridSizeOptions = Array.from({ length: 46 }, (_, index) => index + 5);
 const defaultMazeLayout = [
     "S      ########",
     "## ### ########",
@@ -23,6 +23,7 @@ function Maze() {
     newMaze = true;
     const [rows, setRows] = useState(15);
     const [cols, setCols] = useState(15);
+    const autoSolve = true;
 
     return (
         <div className="card maze-solver-card">
@@ -34,14 +35,15 @@ function Maze() {
                 <div>
                     <p>
                         <span className="d-lg-none">
-                            Check a square to add or remove an obstacle. Green shows the start and red shows the exit.
+                            Check a square to add or remove an obstacle. Green shows the start and red shows the exit. 
                         </span>
                         <span className="d-none d-lg-inline">
                             Check a square to toggle an obstacle. Drag the green start or red exit marker to move it.
                         </span>
+                        {' '}The path will be shown in yellow
                     </p>
                     <div className="maze-size-controls d-none d-md-flex justify-content-center align-items-end gap-3 mb-3">
-                        <div>
+                        <div className="maze-size-controls justify-content-center align-items-end gap-3 mb-3">
                             <label className="form-label" htmlFor="mazeRows">Rows</label>
                             <select
                                 className="form-select"
@@ -54,7 +56,7 @@ function Maze() {
                                 ))}
                             </select>
                         </div>
-                        <div>
+                        <div className="maze-size-controls justify-content-center align-items-end gap-3 mb-3">
                             <label className="form-label" htmlFor="mazeColumns">Columns</label>
                             <select
                                 className="form-select"
@@ -68,18 +70,19 @@ function Maze() {
                             </select>
                         </div>
                     </div>
-                    <MazeCreator key={`${rows}-${cols}`} rows={rows} cols={cols} />
+                    <MazeCreator key={`${rows}-${cols}`} rows={rows} cols={cols} autoSolve={autoSolve} />
                 </div>
             </div>
         </div>
     )
 }
 
-function MazeCreator(props: { rows: number; cols: number }) {
-    const { rows, cols } = props;
+function MazeCreator(props: { rows: number; cols: number; autoSolve: boolean }) {
+    const { rows, cols, autoSolve } = props;
     const [start, setStart] = useState<Point>([0, 0]);
     const [end, setEnd] = useState<Point>([cols - 1, rows - 1]);
     const [solveResult, setSolveResult] = useState<SolveResult | null>(null);
+    const [mazeRevision, setMazeRevision] = useState(0);
     const maze: boolean[][] =
         rows === defaultMazeLayout.length && cols === defaultMazeLayout[0].length && newMaze
             ? defaultMazeLayout.map((line) =>
@@ -89,6 +92,16 @@ function MazeCreator(props: { rows: number; cols: number }) {
     const gridRef = useRef<HTMLDivElement>(null);
     const solveButtonRef = useRef<HTMLButtonElement>(null);
     const solveResultRef = useRef<HTMLParagraphElement>(null);
+
+    useEffect(() => {
+        if (!autoSolve) return;
+
+        const timeout = window.setTimeout(() => {
+            setSolveResult(solveMaze());
+        }, 250);
+
+        return () => window.clearTimeout(timeout);
+    }, [autoSolve, mazeRevision]);
 
     useLayoutEffect(() => {
         const grid = gridRef.current;
@@ -176,19 +189,24 @@ function MazeCreator(props: { rows: number; cols: number }) {
         value: number,
         max: number
     ) => {
-        setSolveResult(null);
+        markMazeChanged();
         const next = [...point] as Point;
         next[axis] = Math.max(0, Math.min(max, value));
         setter(next);
     };
 
-    const clearMaze = () => {
+    const markMazeChanged = () => {
         clearSolutionPath();
+        setSolveResult(null);
+        setMazeRevision((revision) => revision + 1);
+    };
+    const fillMaze = (isObstacle: boolean) => {
         const obstacles = gridRef.current?.querySelectorAll<HTMLInputElement>(
             ".maze-cell:not(.maze-cell--start):not(.maze-cell--end)"
         ) ?? [];
-        for (const obstacle of obstacles) obstacle.checked = false;
-        setSolveResult(null);
+        clearSolutionPath();
+        for (const obstacle of obstacles) obstacle.checked = isObstacle;
+        markMazeChanged();
     };
 
     return (
@@ -251,16 +269,14 @@ function MazeCreator(props: { rows: number; cols: number }) {
                         (col !== end[0] || row !== end[1]) &&
                         (col !== start[0] || row !== start[1])
                     ) {
-                        clearSolutionPath();
-                        setSolveResult(null);
+                        markMazeChanged();
                         setStart([col, row]);
                     } else if (
                         marker === "end" &&
                         (col !== start[0] || row !== start[1]) &&
                         (col !== end[0] || row !== end[1])
                     ) {
-                        clearSolutionPath();
-                        setSolveResult(null);
+                        markMazeChanged();
                         setEnd([col, row]);
                     }
                 }}
@@ -282,26 +298,21 @@ function MazeCreator(props: { rows: number; cols: number }) {
                                     checked={cell}
                                     row={rowIndex}
                                     col={colIndex}
-                                    onChange={() => setSolveResult(null)}
+                                    onChange={markMazeChanged}
                                 />
                             )
                         ))}
                     </div>
                 ))}
             </div>
-            <div className="d-flex justify-content-center gap-2">
-                <button
-                    id="solveButton"
-                    ref={solveButtonRef}
-                    type="button"
-                    className="btn btn-primary"
-                    onClick={() => setSolveResult(solveMaze())}
-                >
-                    Solve
+            <div className="d-flex justify-content-center align-items-center flex-wrap gap-2">
+                <button type="button" className="btn btn-outline-secondary" onClick={() => fillMaze(true)}>
+                    Fill
                 </button>
-                <button type="button" className="btn btn-outline-secondary" onClick={clearMaze}>
+                <button type="button" className="btn btn-outline-secondary" onClick={() => fillMaze(false)}>
                     Clear
                 </button>
+
             </div>
             {solveResult && (
                 <p
@@ -413,7 +424,7 @@ function solveMaze(): SolveResult {
 
     return {
         solved: true,
-        message: `Maze solved in ${path.length} steps, including the start and exit positions. The path is shown in yellow.`,
+        message: `Maze solved in ${path.length} steps, including the start and exit positions.`,
     };
 }
 
