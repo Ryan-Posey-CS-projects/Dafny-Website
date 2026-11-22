@@ -23,7 +23,25 @@ function Maze() {
     newMaze = true;
     const [rows, setRows] = useState(15);
     const [cols, setCols] = useState(15);
+    const [mazeResetKey, setMazeResetKey] = useState(0);
     const autoSolve = true;
+
+    useEffect(() => {
+        const sizeControlsMedia = window.matchMedia("(min-width: 768px)");
+        const resetMazeForMobile = () => {
+            if (sizeControlsMedia.matches) return;
+
+            newMaze = true;
+            setRows(15);
+            setCols(15);
+            setMazeResetKey((key) => key + 1);
+        };
+
+        resetMazeForMobile();
+        sizeControlsMedia.addEventListener("change", resetMazeForMobile);
+        return () =>
+            sizeControlsMedia.removeEventListener("change", resetMazeForMobile);
+    }, []);
 
     return (
         <div className="card maze-solver-card">
@@ -70,7 +88,12 @@ function Maze() {
                             </select>
                         </div>
                     </div>
-                    <MazeCreator key={`${rows}-${cols}`} rows={rows} cols={cols} autoSolve={autoSolve} />
+                    <MazeCreator
+                        key={`${rows}-${cols}-${mazeResetKey}`}
+                        rows={rows}
+                        cols={cols}
+                        autoSolve={autoSolve}
+                    />
                 </div>
             </div>
         </div>
