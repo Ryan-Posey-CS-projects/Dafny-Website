@@ -1,4 +1,5 @@
 import { useEffect, useId, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { strToU8, zipSync } from "fflate";
 import SourceCodePage, { type SourceColorMode } from "./SourceCodePage";
 
@@ -22,6 +23,13 @@ export type SourceProps = {
 
 export default function Source({ projects }: SourceProps) {
   const tabPrefix = useId().replace(/:/g, "");
+  const [searchParams, setSearchParams] = useSearchParams();
+  const projectIdFromUrl =
+    searchParams.get("project") ?? searchParams.get("tab");
+  const selectedProject = projects.find(
+    (project) => project.id === projectIdFromUrl,
+  );
+  const activeProjectId = selectedProject?.id ?? projects[0]?.id;
   const [downloadState, setDownloadState] = useState<
     | { projectId: string; status: "downloading" }
     | { projectId: string; status: "error"; message: string }
@@ -63,6 +71,27 @@ export default function Source({ projects }: SourceProps) {
   const handleColorModeChange = (nextColorMode: SourceColorMode) => {
     window.localStorage.setItem(colorModeStorageKey, nextColorMode);
     setColorModeOverride(nextColorMode);
+  };
+
+  const selectProject = (projectId: string) => {
+    const nextParams = new URLSearchParams(searchParams);
+    nextParams.delete("tab");
+    nextParams.set("project", projectId);
+    nextParams.delete("file");
+    setSearchParams(nextParams, { replace: true });
+  };
+
+  const selectFile = (projectId: string, fileLabel: string) => {
+    setSelectedFileByProject((selectedFiles) => ({
+      ...selectedFiles,
+      [projectId]: fileLabel,
+    }));
+
+    const nextParams = new URLSearchParams(searchParams);
+    nextParams.set("project", projectId);
+    nextParams.delete("tab");
+    nextParams.set("file", fileLabel);
+    setSearchParams(nextParams, { replace: true });
   };
 
   const downloadProjectFiles = async (project: SourceProject) => {
@@ -114,18 +143,18 @@ export default function Source({ projects }: SourceProps) {
         {projects.map((project, index) => {
           const tabId = `${tabPrefix}-project-tab-${index}`;
           const panelId = `${tabPrefix}-project-panel-${index}`;
+          const isActiveProject = project.id === activeProjectId;
 
           return (
             <li className="nav-item" role="presentation" key={project.id}>
               <button
-                className={`nav-link${index === 0 ? " active" : ""}`}
+                className={`nav-link${isActiveProject ? " active" : ""}`}
                 id={tabId}
-                data-bs-toggle="tab"
-                data-bs-target={`#${panelId}`}
                 type="button"
                 role="tab"
                 aria-controls={panelId}
-                aria-selected={index === 0}
+                aria-selected={isActiveProject}
+                onClick={() => selectProject(project.id)}
               >
                 {project.label}
               </button>
@@ -137,14 +166,18 @@ export default function Source({ projects }: SourceProps) {
         {projects.map((project, index) => {
           const tabId = `${tabPrefix}-project-tab-${index}`;
           const panelId = `${tabPrefix}-project-panel-${index}`;
-          const selectedFileLabel = selectedFileByProject[project.id];
+          const isActiveProject = project.id === activeProjectId;
+          const selectedFileLabel =
+            isActiveProject && searchParams.get("file")
+              ? searchParams.get("file")
+              : selectedFileByProject[project.id];
           const selectedFile =
             project.files.find((file) => file.label === selectedFileLabel);
           const fileSelectId = `${panelId}-file-select`;
 
           return (
             <section
-              className={`tab-pane fade${index === 0 ? " show active" : ""}`}
+              className={`tab-pane fade${isActiveProject ? " show active" : ""}`}
               id={panelId}
               role="tabpanel"
               aria-labelledby={tabId}
@@ -174,12 +207,7 @@ export default function Source({ projects }: SourceProps) {
                       className="form-select"
                       id={fileSelectId}
                       value={selectedFile?.label ?? ""}
-                      onChange={(event) =>
-                        setSelectedFileByProject((selectedFiles) => ({
-                          ...selectedFiles,
-                          [project.id]: event.target.value,
-                        }))
-                      }
+                      onChange={(event) => selectFile(project.id, event.target.value)}
                     >
                       <option value="" disabled hidden>
                         Select a file to view its source code...

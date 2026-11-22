@@ -130,7 +130,7 @@ function Home() {
                                 <h2 className="h5 card-title">Explore verification in action</h2>
                                 <p className="card-text mb-0">
                                     Try the <Link to="/maze">maze example</Link>, then{' '}
-                                    <Link to="/code">browse its Dafny source</Link> to see how
+                                    <Link to="/code?project=maze-solver">browse its Dafny source</Link> to see how
                                     a program and its specifications fit together.
                                 </p>
                             </div>
