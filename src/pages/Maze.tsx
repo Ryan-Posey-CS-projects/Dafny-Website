@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, type ChangeEvent } from "react";
 let newMaze = true;
 const gridSizeOptions = Array.from({ length: 46 }, (_, index) => index + 5);
 const defaultMazeLayout = [
@@ -24,7 +24,15 @@ function Maze() {
     const [rows, setRows] = useState(15);
     const [cols, setCols] = useState(15);
     const [mazeResetKey, setMazeResetKey] = useState(0);
+    const [loadedMaze, setLoadedMaze] = useState<SavedMaze | null>(null);
     const autoSolve = true;
+
+    const loadMaze = (maze: SavedMaze) => {
+        setRows(maze.rows);
+        setCols(maze.cols);
+        setLoadedMaze(maze);
+        setMazeResetKey((key) => key + 1);
+    };
 
     useEffect(() => {
         const sizeControlsMedia = window.matchMedia("(min-width: 768px)");
@@ -32,6 +40,7 @@ function Maze() {
             if (sizeControlsMedia.matches) return;
 
             newMaze = true;
+            setLoadedMaze(null);
             setRows(15);
             setCols(15);
             setMazeResetKey((key) => key + 1);
@@ -67,7 +76,10 @@ function Maze() {
                                 className="form-select"
                                 id="mazeRows"
                                 value={rows}
-                                onChange={(event) => setRows(Number(event.target.value))}
+                                onChange={(event) => {
+                                    setLoadedMaze(null);
+                                    setRows(Number(event.target.value));
+                                }}
                             >
                                 {gridSizeOptions.map((size) => (
                                     <option key={size} value={size}>{size}</option>
@@ -80,7 +92,10 @@ function Maze() {
                                 className="form-select"
                                 id="mazeColumns"
                                 value={cols}
-                                onChange={(event) => setCols(Number(event.target.value))}
+                                onChange={(event) => {
+                                    setLoadedMaze(null);
+                                    setCols(Number(event.target.value));
+                                }}
                             >
                                 {gridSizeOptions.map((size) => (
                                     <option key={size} value={size}>{size}</option>
@@ -93,6 +108,8 @@ function Maze() {
                         rows={rows}
                         cols={cols}
                         autoSolve={autoSolve}
+                        initialMaze={loadedMaze}
+                        onLoadMaze={loadMaze}
                     />
                 </div>
             </div>
@@ -100,14 +117,26 @@ function Maze() {
     )
 }
 
-function MazeCreator(props: { rows: number; cols: number; autoSolve: boolean }) {
-    const { rows, cols, autoSolve } = props;
-    const [start, setStart] = useState<Point>([0, 0]);
-    const [end, setEnd] = useState<Point>([cols - 1, rows - 1]);
+function MazeCreator(props: {
+    rows: number;
+    cols: number;
+    autoSolve: boolean;
+    initialMaze: SavedMaze | null;
+    onLoadMaze: (maze: SavedMaze) => void;
+}) {
+    const { rows, cols, autoSolve, initialMaze, onLoadMaze } = props;
+    const [start, setStart] = useState<Point>(() =>
+        initialMaze ? [initialMaze.start.x, initialMaze.start.y] : [0, 0]
+    );
+    const [end, setEnd] = useState<Point>(() =>
+        initialMaze ? [initialMaze.end.x, initialMaze.end.y] : [cols - 1, rows - 1]
+    );
     const [solveResult, setSolveResult] = useState<SolveResult | null>(null);
     const [mazeRevision, setMazeRevision] = useState(0);
-    const maze: boolean[][] =
-        rows === defaultMazeLayout.length && cols === defaultMazeLayout[0].length && newMaze
+    const [loadError, setLoadError] = useState<string | null>(null);
+    const maze: boolean[][] = initialMaze
+        ? initialMaze.obstacles
+        : rows === defaultMazeLayout.length && cols === defaultMazeLayout[0].length && newMaze
             ? defaultMazeLayout.map((line) =>
                 Array.from(line, (cell) => cell === "#")
             )
@@ -231,6 +260,64 @@ function MazeCreator(props: { rows: number; cols: number; autoSolve: boolean }) 
         for (const obstacle of obstacles) obstacle.checked = isObstacle;
         markMazeChanged();
     };
+    const saveMaze = () => {
+        const gridRows = Array.from(gridRef.current?.querySelectorAll(".maze-row") ?? []);
+        const savedMaze: SavedMaze = {
+            format: "dafny-website-maze",
+            version: 1,
+            rows,
+            cols,
+            start: { x: start[0], y: start[1] },
+            end: { x: end[0], y: end[1] },
+            obstacles: gridRows.map((gridRow) =>
+                Array.from(gridRow.querySelectorAll<HTMLInputElement>(".maze-cell"), (cell) =>
+                    cell.classList.contains("maze-cell--start") ||
+                    cell.classList.contains("maze-cell--end") ||
+                    cell.dataset.solutionPath === "true"
+                        ? false
+                        : cell.checked
+                )
+            ),
+        };
+        const file = new Blob([JSON.stringify(savedMaze, null, 2)], {
+            type: "application/json",
+        });
+        const url = URL.createObjectURL(file);
+        const download = document.createElement("a");
+        download.href = url;
+        download.download = `maze-${rows}x${cols}.json`;
+        download.click();
+        window.setTimeout(() => URL.revokeObjectURL(url), 0);
+    };
+    const loadMazeFile = async (event: ChangeEvent<HTMLInputElement>) => {
+        const input = event.currentTarget;
+        const file = input.files?.[0];
+        input.value = "";
+        if (!file) return;
+
+        try {
+            const contents = await file.text();
+            let data: unknown;
+            try {
+                data = JSON.parse(contents);
+            } catch {
+                data = parseDafnyMaze(contents);
+                if (!data) data = parseTextMaze(contents);
+            }
+
+            if (!isSavedMaze(data)) {
+                setLoadError(
+                    "Invalid maze file. Choose a valid maze JSON or text file."
+                );
+                return;
+            }
+
+            setLoadError(null);
+            onLoadMaze(data);
+        } catch {
+            setLoadError("Unable to read maze file. Check the file and try again.");
+        }
+    };
 
     return (
         <>
@@ -252,6 +339,23 @@ function MazeCreator(props: { rows: number; cols: number; autoSolve: boolean }) 
                     <input className="form-control form-control-sm" type="number" name="EndY" id="EndY" min={1} max={rows} step={1} value={end[1] + 1} onChange={(event) => updateCoordinate(setEnd, end, 1, Number(event.target.value) - 1, rows - 1)} />
                 </div>
             </div>
+            <div className="d-flex justify-content-center align-items-center flex-wrap gap-2 my-3">
+                <button type="button" className="btn btn-outline-secondary" onClick={saveMaze}>
+                    Save maze
+                </button>
+                <label className="btn btn-outline-secondary mb-0" htmlFor="maze-file">
+                    Load maze
+                </label>
+                <input
+                    className="visually-hidden"
+                    id="maze-file"
+                    type="file"
+                    accept="application/json,.json,.txt,text/plain"
+                    aria-label="Load maze from JSON or text"
+                    onChange={loadMazeFile}
+                />
+            </div>
+            {loadError && <p className="text-danger" role="alert">{loadError}</p>}
             <div
                 className="maze-grid"
                 ref={gridRef}
@@ -264,16 +368,25 @@ function MazeCreator(props: { rows: number; cols: number; autoSolve: boolean }) 
                     }
 
                     const marker = event.target.closest(".maze-cell--start, .maze-cell--end");
-                    if (!marker) {
+                    if (!(marker instanceof HTMLInputElement)) {
                         event.preventDefault();
                         return;
                     }
 
+                    marker.checked = false;
                     event.dataTransfer.setData(
                         "text/plain",
                         marker.classList.contains("maze-cell--start") ? "start" : "end"
                     );
                     event.dataTransfer.effectAllowed = "move";
+                }}
+                onDragEnd={(event) => {
+                    if (
+                        event.target instanceof HTMLInputElement &&
+                        event.target.matches(".maze-cell--start, .maze-cell--end")
+                    ) {
+                        event.target.checked = false;
+                    }
                 }}
                 onDragOver={(event) => event.preventDefault()}
                 onDrop={(event) => {
@@ -391,6 +504,188 @@ function Cell(props: {
 
 type Point = [number, number];
 type SolveResult = { solved: boolean; message: string };
+type SavedMaze = {
+    format: "dafny-website-maze";
+    version: 1;
+    rows: number;
+    cols: number;
+    start: { x: number; y: number };
+    end: { x: number; y: number };
+    obstacles: boolean[][];
+};
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+    return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function isMazePoint(value: unknown, rows: number, cols: number): value is { x: number; y: number } {
+    if (!isRecord(value)) return false;
+    const { x, y } = value;
+    return (
+        typeof x === "number" &&
+        Number.isInteger(x) &&
+        x >= 0 &&
+        x < cols &&
+        typeof y === "number" &&
+        Number.isInteger(y) &&
+        y >= 0 &&
+        y < rows
+    );
+}
+
+function isObstacleGrid(value: unknown, rows: number, cols: number): value is boolean[][] {
+    return (
+        Array.isArray(value) &&
+        value.length === rows &&
+        value.every(
+            (row) =>
+                Array.isArray(row) &&
+                row.length === cols &&
+                row.every((cell) => typeof cell === "boolean")
+        )
+    );
+}
+
+function isSavedMaze(value: unknown): value is SavedMaze {
+    if (!isRecord(value) || value.format !== "dafny-website-maze" || value.version !== 1) {
+        return false;
+    }
+
+    const { rows, cols } = value;
+    const start = value.start;
+    const end = value.end;
+    const obstacles = value.obstacles;
+    if (
+        typeof rows !== "number" ||
+        !Number.isInteger(rows) ||
+        rows < 5 ||
+        rows > 50 ||
+        typeof cols !== "number" ||
+        !Number.isInteger(cols) ||
+        cols < 5 ||
+        cols > 50 ||
+        !isMazePoint(start, rows, cols) ||
+        !isMazePoint(end, rows, cols) ||
+        (start.x === end.x && start.y === end.y) ||
+        !isObstacleGrid(obstacles, rows, cols)
+    ) {
+        return false;
+    }
+
+    return !obstacles[start.y][start.x] && !obstacles[end.y][end.x];
+}
+
+function parseDafnyMaze(source: string): SavedMaze | null {
+    const layout = source.match(/\blayout\s*:=\s*\[([\s\S]*?)\]/)?.[1];
+    if (!layout) return null;
+
+    const rowLiterals = layout.match(/"(?:\\.|[^"\\])*"/g) ?? [];
+    const remaining = layout.replace(/"(?:\\.|[^"\\])*"/g, "").replace(/,/g, "").trim();
+    if (remaining || rowLiterals.length < 5 || rowLiterals.length > 50) return null;
+
+    const rows: string[] = [];
+    try {
+        for (const literal of rowLiterals) {
+            const row: unknown = JSON.parse(literal);
+            if (typeof row !== "string") return null;
+            rows.push(row);
+        }
+    } catch {
+        return null;
+    }
+
+    const cols = rows[0].length;
+    if (cols < 5 || cols > 50 || rows.some((row) => row.length !== cols)) return null;
+
+    let start: SavedMaze["start"] | null = null;
+    let end: SavedMaze["end"] | null = null;
+    let startCount = 0;
+    let endCount = 0;
+    const obstacles = rows.map((row, y) =>
+        Array.from(row, (cell, x) => {
+            if (cell === "S") {
+                startCount++;
+                if (!start) start = { x, y };
+                return false;
+            }
+            if (cell === "E") {
+                endCount++;
+                if (!end) end = { x, y };
+                return false;
+            }
+            if (cell === "#") return true;
+            if (cell === " ") return false;
+            return true;
+        })
+    );
+    const hasInvalidCell = rows.some((row) =>
+        Array.from(row).some((cell) => cell !== "#" && cell !== " " && cell !== "S" && cell !== "E")
+    );
+    if (
+        !start ||
+        !end ||
+        startCount !== 1 ||
+        endCount !== 1 ||
+        hasInvalidCell
+    ) {
+        return null;
+    }
+
+    return {
+        format: "dafny-website-maze",
+        version: 1,
+        rows: rows.length,
+        cols,
+        start,
+        end,
+        obstacles,
+    };
+}
+
+function parseTextMaze(source: string): SavedMaze | null {
+    const rows = source.replace(/\r/g, "").replace(/\n$/, "").split("\n");
+    if (rows.length < 5 || rows.length > 50) return null;
+
+    const cols = rows[0].length;
+    if (cols < 5 || cols > 50 || rows.some((row) => row.length !== cols)) return null;
+
+    let start: SavedMaze["start"] | null = null;
+    let end: SavedMaze["end"] | null = null;
+    let startCount = 0;
+    let endCount = 0;
+    let valid = true;
+
+    const obstacles = rows.map((row, y) =>
+        Array.from(row, (cell, x) => {
+            if (cell === "S") {
+                startCount++;
+                if (!start) start = { x, y };
+                return false;
+            }
+            if (cell === "E") {
+                endCount++;
+                if (!end) end = { x, y };
+                return false;
+            }
+            if (cell === "#") return true;
+            if (cell === " ") return false;
+            valid = false;
+            return true;
+        })
+    );
+
+    if (!valid || startCount !== 1 || endCount !== 1 || !start || !end) return null;
+
+    return {
+        format: "dafny-website-maze",
+        version: 1,
+        rows: rows.length,
+        cols,
+        start,
+        end,
+        obstacles,
+    };
+}
 
 function clearSolutionPath(preserveObstacle?: HTMLInputElement) {
     const pathCells = document.querySelectorAll<HTMLInputElement>(
