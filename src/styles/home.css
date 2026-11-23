@@ -1,0 +1,17 @@
+.home-hero {
+    text-align: center;
+}
+
+.home-hero_logo {
+    display: block;
+    width: 100%;
+    max-width: 20rem;
+    margin-inline: auto;
+    border-radius: var(--bs-border-radius);
+}
+
+@media (min-width: 768px) {
+    .home-hero {
+        text-align: left;
+    }
+}

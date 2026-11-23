@@ -59,41 +59,41 @@ subdirectory.
 ```text
 .github/
   workflows/
-    deploy.yml          # Manual GitHub Pages deployment
+    deploy.yml              # Manual GitHub Pages deployment
 src/
-  App.tsx               # Navigation and lazy-loaded routes
-  main.tsx              # React entry point and HashRouter
-  browser-process.ts    # Browser-compatible process shim
-  index.css             # Site styles
-  index.html            # Webpack HTML template (favicon included here)
-  assets.d.ts           # Asset module declarations
-  imgs/                 # Favicon (SVG + PNG)
+  App.tsx                   # Navigation and lazy-loaded routes
+  main.tsx                  # React entry point and HashRouter
+  browser-process.ts        # Browser-compatible process shim
+  index.css                 # Site styles
+  index.html                # Webpack HTML template (favicon included here)
+  assets.d.ts               # Asset module declarations
+  imgs/                     # Favicon (SVG + PNG)
   pages/
-    Home.tsx            # Landing page with code sample
-    About.tsx           # About Dafny
-    Documents.tsx       # Docs, tutorials, and papers
-    Install.tsx         # Installation guide
-    Employability.tsx   # Careers and skills
-    Maze.tsx            # Interactive maze solver
-    SourcesPage.tsx     # Loads Dafny source files
-    Source.tsx          # Project/file selection and display
-    SourceCodePage.tsx  # Syntax-highlighted source viewer
-    DafnyCodeViewer.tsx # Shared code viewer (Dafny grammar lives here)
-    NotFound.tsx        # Fallback for unknown routes
+    Home.tsx                # Landing page with code sample
+    About.tsx               # About Dafny
+    Documents.tsx           # Docs, tutorials, and papers
+    Install.tsx             # Installation guide
+    Employability.tsx       # Careers and skills
+    Maze.tsx                # Interactive maze solver
+    SourcesPage.tsx         # Loads Dafny source files
+    Source.tsx              # Project/file selection and display
+    SourceCodePage.tsx      # Syntax-highlighted source viewer
+    DafnyCodeViewer.tsx     # Shared code viewer (Dafny grammar lives here)
+    NotFound.tsx            # Fallback for unknown routes
   examples/
     beginner/
-      Hello.dfy         # Install page verification sample
-      firstprog.dfy     # HelloWorld source browser example
-      Intro.dfy         # Home page code sample
-      sumOfTwoEvens.dfy # Sum of two evens source browser example
+        Hello.dfy           # Install page verification sample
+        firstprog.dfy       # HelloWorld source browser example
+        Intro.dfy           # Home page code sample
+        sumOfTwoEvens.dfy   # Sum of two evens source browser example
     maze-solver/
-      Maze.dfy          # Maze solver Dafny source
-      Queue.dfy         # Queue Dafny source
-      Maze.js           # Maze solver compiled to JavaScript
-      Maze-js.dtr       # Dafny test/result artifact
-package.json            # Dependencies and commands
-tsconfig.json           # TypeScript configuration
-webpack.config.js       # Build, asset, and PurgeCSS configuration
+        Maze.dfy            # Maze solver Dafny source
+        Queue.dfy           # Queue Dafny source
+        Maze.js             # Maze solver compiled to JavaScript
+        Maze-js.dtr         # Dafny test/result artifact
+package.json                # Dependencies and commands
+tsconfig.json               # TypeScript configuration
+webpack.config.js           # Build, asset, and PurgeCSS configuration
 ```
 
 ## Adding Dafny code
@@ -107,19 +107,19 @@ update the Dafny grammar in `src/pages/DafnyCodeViewer.tsx`.
 ### In the source browser
 
 1. Add the `.dfy` file to the appropriate project folder, such as
-   `src/examples/beginner/` or `src/examples/maze-solver/`.
+    `src/examples/beginner/` or `src/examples/maze-solver/`.
 2. Import it in `src/pages/SourcesPage.tsx`.
 3. Add it to the `sourceProjects` list, grouping it with related files or
-   creating a new project entry.
+    creating a new project entry.
 
 ### Embedded in a page
 
 1. Add the `.dfy` file under `src/examples/beginner/` or another matching
-   project folder.
+    project folder.
 2. Import its URL in the page:
-   `import sampleUrl from '../examples/beginner/Sample.dfy'`.
+    `import sampleUrl from '../examples/beginner/Sample.dfy'`.
 3. Pass it to `DafnyCodeViewer` as `sourceUrl`, as Home and Install do with
-   `Intro.dfy` and `Hello.dfy`.
+    `Intro.dfy` and `Hello.dfy`.
 
 ## Adding a route
 

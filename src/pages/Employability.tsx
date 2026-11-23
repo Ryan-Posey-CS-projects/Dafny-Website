@@ -4,7 +4,7 @@ function Employability() {
             <div className="card-body p-3 p-md-5">
                 <header className="mb-5 text-center">
                     <h1 className="display-5 fw-bold">Employability</h1>
-                    <p className="lead mx-auto mb-0" style={{ maxWidth: '42rem' }}>
+                    <p className="lead mx-auto mb-0 hero-text">
                         Explore how Dafny and formal verification relate to software
                         careers.
                     </p>

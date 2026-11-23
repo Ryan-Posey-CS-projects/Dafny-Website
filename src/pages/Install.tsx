@@ -13,7 +13,7 @@ function Install() {
                         Get started
                     </p>
                     <h1 className="display-5 fw-bold">Install Dafny</h1>
-                    <p className="lead mx-auto mb-0" style={{ maxWidth: '42rem' }}>
+                    <p className="lead mx-auto mb-0 hero-text">
                         Set up Dafny in Visual Studio Code for the easiest start and
                         install the command-line tools for your operating system to run
                         Dafny from the terminal.

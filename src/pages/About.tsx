@@ -82,7 +82,7 @@ function About() {
                         About the language
                     </p>
                     <h1 className="display-5 fw-bold">Meet Dafny</h1>
-                    <p className="lead mx-auto mb-0" style={{ maxWidth: '42rem' }}>
+                    <p className="lead mx-auto mb-0 hero-text">
                         A programming language designed to help developers write programs
                         and specify what those programs should do.
                     </p>

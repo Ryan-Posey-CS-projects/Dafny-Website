@@ -2,6 +2,10 @@ main {
     min-height: 50vh;
 }
 
+.hero-text {
+    max-width: '42rem'
+}
+
 .site-navigation .nav-link,
 .site-navigation .dropdown-menu {
     text-align: left;

@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import introSourceUrl from '../examples/beginner/Intro.dfy'
 import DafnyCodeViewer, { type SourceColorMode } from './DafnyCodeViewer'
+import dafnyLogo from '../imgs/dafny-logo.jpg'
 
 function Home() {
     const [codeColorMode, setCodeColorMode] = useState<SourceColorMode>('dark')
@@ -9,26 +10,37 @@ function Home() {
     return (
         <div className="card">
             <div className="card-body">
-                <section className="py-4 py-md-5">
-                    <h1 className="display-4 fw-bold">
-                        Write code. Prove it meets its specifications.
-                    </h1>
-                    <p className="lead mx-auto" style={{ maxWidth: '42rem' }}>
-                        Dafny is a programming language with an automated verifier that
-                        checks code against specifications. It can catch errors such as
-                        out-of-bounds access before runtime, helping prevent coding-related
-                        crashes.
-                    </p>
-                    <div className="d-flex flex-wrap justify-content-center gap-2 mt-4">
-                        <Link className="btn btn-primary" to="/maze">
-                            Try the Maze Solver
-                        </Link>
-                        <Link className="btn btn-outline-primary" to="/code">
-                            Explore Dafny Source
-                        </Link>
-                        <Link className="btn btn-outline-primary" to="/install">
-                            Install Dafny
-                        </Link>
+                <section className="home-hero py-4 py-md-5">
+                    <div className="row align-items-center justify-content-center g-4">
+                        <div className="col-md-8">
+                            <h1 className="display-4 fw-bold">
+                                Write code. Prove it meets its specifications.
+                            </h1>
+                            <p className="lead hero-text mb-0">
+                                Dafny is a programming language with an automated verifier that
+                                checks code against specifications. It can catch errors such as
+                                out-of-bounds access before runtime, helping prevent coding-related
+                                crashes.
+                            </p>
+                            <div className="d-flex flex-wrap justify-content-center justify-content-md-start gap-2 mt-4">
+                                <Link className="btn btn-primary" to="/maze">
+                                    Try the Maze Solver
+                                </Link>
+                                <Link className="btn btn-outline-primary" to="/code">
+                                    Explore Dafny Source
+                                </Link>
+                                <Link className="btn btn-outline-primary" to="/install">
+                                    Install Dafny
+                                </Link>
+                            </div>
+                        </div>
+                        <div className="col-8 col-sm-6 col-md-4">
+                            <img
+                                className="home-hero_logo img-fluid"
+                                src={dafnyLogo}
+                                alt="Dafny logo"
+                            />
+                        </div>
                     </div>
                 </section>
 
