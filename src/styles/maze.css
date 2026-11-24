@@ -7,7 +7,7 @@
 
 .maze-solve-result {
     position: sticky;
-    z-index: 1080;
+    z-index: 2;
     left: 50%;
     translate: -0% 0;
     bottom: 0rem;

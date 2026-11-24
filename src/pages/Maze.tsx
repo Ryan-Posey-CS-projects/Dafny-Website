@@ -1,3 +1,4 @@
+import 'bootstrap/js/src/modal.js'
 import { useEffect, useLayoutEffect, useRef, useState, type ChangeEvent } from "react";
 let newMaze = true;
 const gridSizeOptions = Array.from({ length: 46 }, (_, index) => index + 5);
@@ -62,7 +63,7 @@ function Maze() {
                 <div>
                     <p>
                         <span className="d-lg-none">
-                            Check a square to add or remove an obstacle. Green shows the start and red shows the exit. 
+                            Check a square to add or remove an obstacle. Green shows the start and red shows the exit.
                         </span>
                         <span className="d-none d-lg-inline">
                             Check a square to toggle an obstacle. Drag the green start or red exit marker to move it.
@@ -260,9 +261,9 @@ function MazeCreator(props: {
         for (const obstacle of obstacles) obstacle.checked = isObstacle;
         markMazeChanged();
     };
-    const saveMaze = () => {
+    const getSavedMaze = (): SavedMaze => {
         const gridRows = Array.from(gridRef.current?.querySelectorAll(".maze-row") ?? []);
-        const savedMaze: SavedMaze = {
+        return {
             format: "dafny-website-maze",
             version: 1,
             rows,
@@ -272,20 +273,37 @@ function MazeCreator(props: {
             obstacles: gridRows.map((gridRow) =>
                 Array.from(gridRow.querySelectorAll<HTMLInputElement>(".maze-cell"), (cell) =>
                     cell.classList.contains("maze-cell--start") ||
-                    cell.classList.contains("maze-cell--end") ||
-                    cell.dataset.solutionPath === "true"
+                        cell.classList.contains("maze-cell--end") ||
+                        cell.dataset.solutionPath === "true"
                         ? false
                         : cell.checked
                 )
             ),
         };
-        const file = new Blob([JSON.stringify(savedMaze, null, 2)], {
-            type: "application/json",
-        });
+    };
+    const downloadMaze = (fileType: "json" | "text") => {
+        const savedMaze = getSavedMaze();
+        const contents =
+            fileType === "json"
+                ? JSON.stringify(savedMaze, null, 2)
+                : savedMaze.obstacles.map((row, rowIndex) =>
+                    row.map((isObstacle, colIndex) =>
+                        rowIndex === savedMaze.start.y && colIndex === savedMaze.start.x
+                            ? "S"
+                            : rowIndex === savedMaze.end.y && colIndex === savedMaze.end.x
+                                ? "E"
+                                : isObstacle
+                                    ? "#"
+                                    : " "
+                    ).join("")
+                ).join("\n");
+        const mimeType = fileType === "json" ? "application/json" : "text/plain";
+        const extension = fileType === "json" ? "json" : "txt";
+        const file = new Blob([contents], { type: `${mimeType};charset=utf-8` });
         const url = URL.createObjectURL(file);
         const download = document.createElement("a");
         download.href = url;
-        download.download = `maze-${rows}x${cols}.json`;
+        download.download = `maze-${rows}x${cols}.${extension}`;
         download.click();
         window.setTimeout(() => URL.revokeObjectURL(url), 0);
     };
@@ -340,7 +358,12 @@ function MazeCreator(props: {
                 </div>
             </div>
             <div className="d-flex justify-content-center align-items-center flex-wrap gap-2 my-3">
-                <button type="button" className="btn btn-outline-secondary" onClick={saveMaze}>
+                <button
+                    type="button"
+                    className="btn btn-outline-secondary"
+                    data-bs-toggle="modal"
+                    data-bs-target="#save-maze-modal"
+                >
                     Save maze
                 </button>
                 <label className="btn btn-outline-secondary mb-0" htmlFor="maze-file">
@@ -356,6 +379,50 @@ function MazeCreator(props: {
                 />
             </div>
             {loadError && <p className="text-danger" role="alert">{loadError}</p>}
+            <div
+                className="modal fade"
+                id="save-maze-modal"
+                tabIndex={-1}
+                aria-labelledby="save-maze-modal-title"
+                aria-hidden="true"
+            >
+                <div className="modal-dialog modal-dialog-centered">
+                    <div className="modal-content">
+                        <div className="modal-header">
+                            <h2 className="modal-title fs-5" id="save-maze-modal-title">
+                                Save maze as
+                            </h2>
+                            <button
+                                type="button"
+                                className="btn-close"
+                                data-bs-dismiss="modal"
+                                aria-label="Close"
+                            />
+                        </div>
+                        <div className="modal-body">
+                            <p className="mb-3">Choose the format for the downloaded maze.</p>
+                            <div className="d-grid gap-2">
+                                <button
+                                    type="button"
+                                    className="btn btn-primary"
+                                    data-bs-dismiss="modal"
+                                    onClick={() => downloadMaze("json")}
+                                >
+                                    JSON
+                                </button>
+                                <button
+                                    type="button"
+                                    className="btn btn-outline-primary"
+                                    data-bs-dismiss="modal"
+                                    onClick={() => downloadMaze("text")}
+                                >
+                                    Plain text
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
             <div
                 className="maze-grid"
                 ref={gridRef}
@@ -576,105 +643,90 @@ function isSavedMaze(value: unknown): value is SavedMaze {
 }
 
 function parseDafnyMaze(source: string): SavedMaze | null {
-    const layout = source.match(/\blayout\s*:=\s*\[([\s\S]*?)\]/)?.[1];
-    if (!layout) return null;
+    const match = source.match(
+        /var\s+layout\s*:=\s*\[([\s\S]*?)\];/
+    );
 
-    const rowLiterals = layout.match(/"(?:\\.|[^"\\])*"/g) ?? [];
-    const remaining = layout.replace(/"(?:\\.|[^"\\])*"/g, "").replace(/,/g, "").trim();
-    if (remaining || rowLiterals.length < 5 || rowLiterals.length > 50) return null;
+    if (!match) {
+        return null;
+    }
 
-    const rows: string[] = [];
-    try {
-        for (const literal of rowLiterals) {
-            const row: unknown = JSON.parse(literal);
-            if (typeof row !== "string") return null;
-            rows.push(row);
-        }
-    } catch {
+    return parseTextMaze(match[1]);
+}
+
+function parseTextMaze(source: string): SavedMaze | null {
+    let rows: string[];
+
+    // Quoted rows (Dafny layout or quoted text file)
+    const quotedRows = [...source.matchAll(/"([^"]*)"/g)]
+        .map(match => match[1]);
+
+    if (quotedRows.length > 0) {
+        rows = quotedRows;
+    } else {
+        // Plain text maze
+        rows = source
+            .replace(/\r/g, "")
+            .split("\n")
+            .filter(row => row.length > 0);
+    }
+
+    console.log(rows);
+    
+    if (rows.length < 5 || rows.length > 50) {
         return null;
     }
 
     const cols = rows[0].length;
-    if (cols < 5 || cols > 50 || rows.some((row) => row.length !== cols)) return null;
 
-    let start: SavedMaze["start"] | null = null;
-    let end: SavedMaze["end"] | null = null;
-    let startCount = 0;
-    let endCount = 0;
-    const obstacles = rows.map((row, y) =>
-        Array.from(row, (cell, x) => {
-            if (cell === "S") {
-                startCount++;
-                if (!start) start = { x, y };
-                return false;
-            }
-            if (cell === "E") {
-                endCount++;
-                if (!end) end = { x, y };
-                return false;
-            }
-            if (cell === "#") return true;
-            if (cell === " ") return false;
-            return true;
-        })
-    );
-    const hasInvalidCell = rows.some((row) =>
-        Array.from(row).some((cell) => cell !== "#" && cell !== " " && cell !== "S" && cell !== "E")
-    );
     if (
-        !start ||
-        !end ||
-        startCount !== 1 ||
-        endCount !== 1 ||
-        hasInvalidCell
+        cols < 5 ||
+        cols > 50 ||
+        rows.some(row => row.length !== cols)
     ) {
         return null;
     }
 
-    return {
-        format: "dafny-website-maze",
-        version: 1,
-        rows: rows.length,
-        cols,
-        start,
-        end,
-        obstacles,
-    };
-}
-
-function parseTextMaze(source: string): SavedMaze | null {
-    const rows = source.replace(/\r/g, "").replace(/\n$/, "").split("\n");
-    if (rows.length < 5 || rows.length > 50) return null;
-
-    const cols = rows[0].length;
-    if (cols < 5 || cols > 50 || rows.some((row) => row.length !== cols)) return null;
-
     let start: SavedMaze["start"] | null = null;
     let end: SavedMaze["end"] | null = null;
     let startCount = 0;
     let endCount = 0;
-    let valid = true;
 
     const obstacles = rows.map((row, y) =>
         Array.from(row, (cell, x) => {
-            if (cell === "S") {
-                startCount++;
-                if (!start) start = { x, y };
-                return false;
+            switch (cell) {
+                case "#":
+                    return true;
+
+                case " ":
+                    return false;
+
+                case "S":
+                    startCount++;
+                    start = { x, y };
+                    return false;
+
+                case "E":
+                    endCount++;
+                    end = { x, y };
+                    return false;
+
+                default:
+                    throw new Error(
+                        `Invalid maze character '${cell}' at (${x}, ${y})`
+                    );
             }
-            if (cell === "E") {
-                endCount++;
-                if (!end) end = { x, y };
-                return false;
-            }
-            if (cell === "#") return true;
-            if (cell === " ") return false;
-            valid = false;
-            return true;
         })
     );
 
-    if (!valid || startCount !== 1 || endCount !== 1 || !start || !end) return null;
+    if (
+        startCount !== 1 ||
+        endCount !== 1 ||
+        start === null ||
+        end === null
+    ) {
+        return null;
+    }
 
     return {
         format: "dafny-website-maze",
