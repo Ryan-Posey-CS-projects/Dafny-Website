@@ -15,12 +15,13 @@ export async function loadTravelingSalesman(
         throw new Error(`${response.status} ${response.statusText}`);
     }
 
-    const source = (await response.text())
-        .replace("const BigNumber = require('bignumber.js');", "BigNumber = arguments[0];")
-        .replace(/_dafny\.HandleHaltExceptions\([\s\S]*$/, "");
+    const source = (await response.text()).replace(
+        /_dafny\.HandleHaltExceptions\([\s\S]*$/,
+        "",
+    );
 
     const createModule = new Function(
-        "BigNumber",
+        "require",
         `${source}
         const graph = _module.Graph.create_Graph(
             new BigNumber(4),
@@ -32,9 +33,14 @@ export async function loadTravelingSalesman(
             )
         );
         return { dafny: _dafny, graph, module: _module };`,
-    ) as (bigNumber: typeof BigNumber) => CompiledTravelingSalesman;
+    ) as (runtimeRequire: (moduleName: string) => typeof BigNumber) => CompiledTravelingSalesman;
 
-    const runtime = createModule(BigNumber);
+    const runtime = createModule((moduleName) => {
+        if (moduleName !== "bignumber.js") {
+            throw new Error(`Unsupported runtime dependency: ${moduleName}`);
+        }
+        return BigNumber;
+    });
     runtime.graph.dtor_cost.forEach((row: unknown[], city: number) => {
         row[city] = undefined;
     });

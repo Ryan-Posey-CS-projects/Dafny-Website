@@ -10,11 +10,12 @@ export async function loadMazeSolver(sourceUrl: string): Promise<MazeSolver> {
         throw new Error(`${response.status} ${response.statusText}`);
     }
 
-    const source = (await response.text())
-        .replace("const BigNumber = require('bignumber.js');", "BigNumber = arguments[0];")
-        .replace(/_dafny\.HandleHaltExceptions\([\s\S]*$/, "");
+    const source = (await response.text()).replace(
+        /_dafny\.HandleHaltExceptions\([\s\S]*$/,
+        "",
+    );
     const createSolver = new Function(
-        "BigNumber",
+        "require",
         `${source}
         return {
             solve(openCells, start, end) {
@@ -45,7 +46,12 @@ export async function loadMazeSolver(sourceUrl: string): Promise<MazeSolver> {
                     ]);
             }
         };`,
-    ) as (bigNumber: typeof BigNumber) => MazeSolver;
+    ) as (runtimeRequire: (moduleName: string) => typeof BigNumber) => MazeSolver;
 
-    return createSolver(BigNumber);
+    return createSolver((moduleName) => {
+        if (moduleName !== "bignumber.js") {
+            throw new Error(`Unsupported runtime dependency: ${moduleName}`);
+        }
+        return BigNumber;
+    });
 }
