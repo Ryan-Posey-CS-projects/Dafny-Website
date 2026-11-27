@@ -15,7 +15,7 @@ const sourceProjects = [
             { label: "Hello.dfy", sourceUrl: helloSourceUrl },
             { label: "HelloWorld.dfy", sourceUrl: helloWorldSourceUrl },
             { label: "SumOfTwoEvens.dfy", sourceUrl: sumOfTwoEvensSourceUrl },
-            { label: "Intro.dfy", sourceUrl: introSourceUrl }
+            { label: "Intro.dfy", sourceUrl: introSourceUrl, hasMain: false }
         ],
     },
     {
@@ -28,7 +28,7 @@ const sourceProjects = [
         label: "Maze Solver",
         files: [
             { label: "Maze.dfy", sourceUrl: mazeSourceUrl },
-            { label: "Queue.dfy", sourceUrl: queueSourceUrl },
+            { label: "Queue.dfy", sourceUrl: queueSourceUrl, hasMain: false },
         ],
     },
 ];

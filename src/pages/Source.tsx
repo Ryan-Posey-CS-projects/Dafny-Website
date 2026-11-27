@@ -9,6 +9,8 @@ const prefersDarkColorScheme = "(prefers-color-scheme: dark)";
 export type SourceTab = {
   label: string;
   sourceUrl: string;
+  /** False for library files with no Main method (default: true). */
+  hasMain?: boolean;
 };
 
 export type SourceProject = {
@@ -230,6 +232,7 @@ export default function Source({ projects }: SourceProps) {
                       title={selectedFile.label}
                       language="Dafny"
                       sourceUrl={selectedFile.sourceUrl}
+                      hasMain={selectedFile.hasMain}
                       colorMode={colorMode}
                       onColorModeChange={handleColorModeChange}
                     />

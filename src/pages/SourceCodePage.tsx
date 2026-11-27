@@ -1,4 +1,5 @@
 import DafnyCodeViewer, { type SourceColorMode } from "./DafnyCodeViewer";
+import BuildRunSteps from "./BuildRunSteps";
 
 export type { SourceColorMode } from "./DafnyCodeViewer";
 
@@ -6,6 +7,7 @@ export type SourceCodePageProps = {
     title: string;
     language: string;
     sourceUrl: string;
+    hasMain?: boolean;
     colorMode: SourceColorMode;
     onColorModeChange: (colorMode: SourceColorMode) => void;
 };
@@ -14,6 +16,7 @@ export default function SourceCodePage({
     title,
     language,
     sourceUrl,
+    hasMain,
     colorMode,
     onColorModeChange,
 }: SourceCodePageProps) {
@@ -32,6 +35,11 @@ export default function SourceCodePage({
                     sourceUrl={sourceUrl}
                     colorMode={colorMode}
                     onColorModeChange={onColorModeChange}
+                />
+                <BuildRunSteps
+                    className="mt-4"
+                    filename={title}
+                    hasMain={hasMain}
                 />
             </div>
         </article>
