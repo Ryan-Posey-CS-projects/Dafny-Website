@@ -1,0 +1,2 @@
+"use strict";(Array.isArray(self.webpackChunkDafny_Language_Website)?self.webpackChunkDafny_Language_Website:self.webpackChunkDafny_Language_Website=[]).push([[757],{564(e,a,s){s.r(a);var c=s(848);s.d(a,["default",0,function(){return(0,c.jsx)("div",{className:"card",children:(0,c.jsxs)("div",{className:"card-body",children:[(0,c.jsx)("h1",{className:"card-title",children:"404"}),(0,c.jsx)("p",{className:"card-text",children:"That page does not exist."})]})})}])}}]);
+//# sourceMappingURL=not-found.9b2f758a.js.map
