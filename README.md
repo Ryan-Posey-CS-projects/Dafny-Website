@@ -90,7 +90,7 @@ src/
         firstprog.dfy       # HelloWorld source browser example
         Intro.dfy           # Home page code sample
         sumOfTwoEvens.dfy   # Sum of two evens source browser example
-    Maze-Solver/
+    maze-solver/
         Maze.dfy            # Maze solver Dafny source
         Queue.dfy           # Queue Dafny source
         Maze.js             # Compiled solver loaded by the maze page
