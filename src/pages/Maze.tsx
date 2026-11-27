@@ -1,6 +1,6 @@
 import 'bootstrap/js/src/modal.js'
 import { useEffect, useLayoutEffect, useRef, useState, type ChangeEvent } from "react";
-import { solveMaze as runMazeSolver, type MazeSolver } from "../examples/Maze-Solver/Maze.js";
+import { solveMaze as runMazeSolver, type MazeSolver } from "../examples/maze-solver/Maze.js";
 let newMaze = true;
 const gridSizeOptions = Array.from({ length: 46 }, (_, index) => index + 5);
 const defaultMazeLayout = [
