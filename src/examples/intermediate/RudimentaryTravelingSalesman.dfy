@@ -1,5 +1,5 @@
 // A weighted complete(interconnected)/directed graph over
-// n cities (indexed 0 .. n-1). 
+// n cities (indexed 0 .. n-1).
 // A cost[u][v] is the travel cost from city x to city y,
 // as is necessitated by the below predicate
 datatype Graph = Graph(n: nat, cost: seq<seq<nat>>)
@@ -18,7 +18,7 @@ ghost predicate IsValidTour(g: Graph, tour: seq<int>)
   requires ValidGraph(g)
 {
   |tour| == g.n &&
-  (forall i :: 0 <= i < |tour| ==> 0 <= tour[i] < g.n) && 
+  (forall i :: 0 <= i < |tour| ==> 0 <= tour[i] < g.n) &&
   (forall i, j :: 0 <= i < j < |tour| ==> tour[i] != tour[j])
 }
 
@@ -87,43 +87,43 @@ method CheckCandidateTour(g: Graph, tour: seq<int>) returns (ok: bool, totalCost
 }
 
 method Main() {
-    var g := Graph(4, [
-        [0, 12, 8, 5],
-        [8, 9, 7, 2],
-        [0, 2, 6, 10],
-        [1, 2, 1, 8]
-    ]);
+  var g := Graph(4, [
+                   [0, 12, 8, 5],
+                   [8, 9, 7, 2],
+                   [0, 2, 6, 10],
+                   [1, 2, 1, 8]
+                 ]);
 
-    assert ValidGraph(g);
+  assert ValidGraph(g);
 
-    var tour0 := [0,1,2,3];
-    var tour1 := [0,1,3,2];
-    var tourInvalid := [0,1,2,2];
+  var tour0 := [0,1,2,3];
+  var tour1 := [0,1,3,2];
+  var tourInvalid := [0,1,2,2];
 
-    var valid0, cost0 := CheckCandidateTour(g, tour0);
-    if valid0 {
-        assert IsValidTour(g, tour0) && cost0 == TourCost(g, tour0);
-        print "Tour 0 is valid and cost = ", cost0, "\n";
-    } 
+  var valid0, cost0 := CheckCandidateTour(g, tour0);
+  if valid0 {
+    assert IsValidTour(g, tour0) && cost0 == TourCost(g, tour0);
+    print "Tour 0 is valid and cost = ", cost0, "\n";
+  }
 
-    var valid1, cost1 := CheckCandidateTour(g, tour1);
-    if valid1 {
-        assert IsValidTour(g, tour1) && cost1 == TourCost(g, tour1);
-        print "Tour 1 is valid and cost = ", cost1, "\n";
+  var valid1, cost1 := CheckCandidateTour(g, tour1);
+  if valid1 {
+    assert IsValidTour(g, tour1) && cost1 == TourCost(g, tour1);
+    print "Tour 1 is valid and cost = ", cost1, "\n";
+  }
+
+  if valid0 && valid1 {
+    if cost0 < cost1 {
+      print "Tour 0 is optimal tour\n";
+    } else {
+      print "Tour 1 is optimal tour\n";
     }
 
-    if valid0 && valid1 {
-        if cost0 < cost1 {
-            print "Tour 0 is optimal tour\n";
-        } else {
-            print "Tour 1 is optimal tour\n";
-        }
+  }
 
-    }
+  var valid2, _ := CheckCandidateTour(g, tourInvalid);
+  if !valid2 {
+    print "Tour 2 is invalid as expected\n";
+  }
 
-    var valid2, _ := CheckCandidateTour(g, tourInvalid);
-    if !valid2 {
-        print "Tour 2 is invalid as expected\n";
-    }
-    
 }

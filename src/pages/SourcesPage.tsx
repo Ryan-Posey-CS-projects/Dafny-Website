@@ -4,7 +4,7 @@ import sumOfTwoEvensSourceUrl from "../examples/beginner/sumOfTwoEvens.dfy";
 import helloWorldSourceUrl from "../examples/beginner/firstprog.dfy";
 import helloSourceUrl from "../examples/beginner/Hello.dfy";
 import introSourceUrl from "../examples/beginner/Intro.dfy";
-
+import travelingSalesmanSourceUrl from "../examples/intermediate/RudimentaryTravelingSalesman.dfy"
 import Source from "./Source";
 
 const sourceProjects = [
@@ -21,7 +21,9 @@ const sourceProjects = [
     {
         id: "intermediate-code",
         label: "Intermediate Code",
-        files: [],
+        files: [
+            { label: "TravelingSalesman.dfy", sourceUrl: travelingSalesmanSourceUrl }
+        ],
     },
     {
         id: "maze-solver",
