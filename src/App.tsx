@@ -20,6 +20,9 @@ const Install = lazy(() =>
 const Maze = lazy(() =>
     import(/* webpackChunkName: "maze" */ './pages/Maze'),
 )
+const TravelingSalesman = lazy(() =>
+    import(/* webpackChunkName: "tsp" */ './pages/TravelingSalesman'),
+)
 const Source = lazy(() =>
     import(/* webpackChunkName: "source" */ './pages/SourcesPage'),
 )
@@ -34,6 +37,7 @@ const pageTitles: Record<string, string> = {
     '/employability': 'Employability',
     '/install': 'Install',
     '/maze': 'Maze Solver',
+    '/tsp': 'Traveling Salesman',
     '/code': 'Source Code',
 }
 
@@ -51,7 +55,9 @@ export default function App() {
     const location = useLocation()
     const closeNav = () => setIsNavExpanded(false)
     const examplesActive =
-        location.pathname === '/maze' || location.pathname === '/code'
+        location.pathname === '/maze' ||
+        location.pathname === '/tsp' ||
+        location.pathname === '/code'
 
     useEffect(() => {
         const pageName = pageTitles[location.pathname] ?? 'Page Not Found'
@@ -167,6 +173,15 @@ export default function App() {
                                 <li>
                                     <NavLink
                                         className="dropdown-item"
+                                        to="/tsp"
+                                        onClick={closeNav}
+                                    >
+                                        Traveling Salesman
+                                    </NavLink>
+                                </li>
+                                <li>
+                                    <NavLink
+                                        className="dropdown-item"
                                         to="/code"
                                         onClick={closeNav}
                                     >
@@ -187,6 +202,7 @@ export default function App() {
                         <Route path="/employability" element={<Employability />} />
                         <Route path="/install" element={<Install />} />
                         <Route path="/maze" element={<Maze />} />
+                        <Route path="/tsp" element={<TravelingSalesman />} />
                         <Route
                             path="/code"
                             element={<Source />}

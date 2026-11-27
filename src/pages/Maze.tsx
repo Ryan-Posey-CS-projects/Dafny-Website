@@ -1,5 +1,7 @@
 import 'bootstrap/js/src/modal.js'
 import { useEffect, useLayoutEffect, useRef, useState, type ChangeEvent } from "react";
+import mazeRuntimeUrl from "../examples/Maze-Solver/Maze.js";
+import { loadMazeSolver, type MazeSolver } from "../mazeSolverRuntime";
 let newMaze = true;
 const gridSizeOptions = Array.from({ length: 46 }, (_, index) => index + 5);
 const defaultMazeLayout = [
@@ -22,11 +24,29 @@ const defaultMazeLayout = [
 
 function Maze() {
     newMaze = true;
+    const [solver, setSolver] = useState<MazeSolver>();
+    const [solverError, setSolverError] = useState<string>();
     const [rows, setRows] = useState(15);
     const [cols, setCols] = useState(15);
     const [mazeResetKey, setMazeResetKey] = useState(0);
     const [loadedMaze, setLoadedMaze] = useState<SavedMaze | null>(null);
     const autoSolve = true;
+
+    useEffect(() => {
+        let active = true;
+        void loadMazeSolver(mazeRuntimeUrl)
+            .then((loadedSolver) => {
+                if (active) setSolver(loadedSolver);
+            })
+            .catch((error) => {
+                if (active) {
+                    setSolverError(error instanceof Error ? error.message : String(error));
+                }
+            });
+        return () => {
+            active = false;
+        };
+    }, []);
 
     const loadMaze = (maze: SavedMaze) => {
         setRows(maze.rows);
@@ -52,6 +72,13 @@ function Maze() {
         return () =>
             sizeControlsMedia.removeEventListener("change", resetMazeForMobile);
     }, []);
+
+    if (solverError) {
+        return <p className="text-danger" role="alert">Could not load maze solver: {solverError}</p>;
+    }
+    if (!solver) {
+        return <p className="text-body-secondary" role="status">Loading maze solver...</p>;
+    }
 
     return (
         <div className="card maze-solver-card">
@@ -109,6 +136,7 @@ function Maze() {
                         rows={rows}
                         cols={cols}
                         autoSolve={autoSolve}
+                        solver={solver}
                         initialMaze={loadedMaze}
                         onLoadMaze={loadMaze}
                     />
@@ -122,10 +150,11 @@ function MazeCreator(props: {
     rows: number;
     cols: number;
     autoSolve: boolean;
+    solver: MazeSolver;
     initialMaze: SavedMaze | null;
     onLoadMaze: (maze: SavedMaze) => void;
 }) {
-    const { rows, cols, autoSolve, initialMaze, onLoadMaze } = props;
+    const { rows, cols, autoSolve, solver, initialMaze, onLoadMaze } = props;
     const [start, setStart] = useState<Point>(() =>
         initialMaze ? [initialMaze.start.x, initialMaze.start.y] : [0, 0]
     );
@@ -150,11 +179,11 @@ function MazeCreator(props: {
         if (!autoSolve) return;
 
         const timeout = window.setTimeout(() => {
-            setSolveResult(solveMaze());
+            setSolveResult(solveMaze(solver));
         }, 250);
 
         return () => window.clearTimeout(timeout);
-    }, [autoSolve, mazeRevision]);
+    }, [autoSolve, mazeRevision, solver]);
 
     useLayoutEffect(() => {
         const grid = gridRef.current;
@@ -750,7 +779,7 @@ function clearSolutionPath(preserveObstacle?: HTMLInputElement) {
     }
 }
 
-function solveMaze(): SolveResult {
+function solveMaze(solver: MazeSolver): SolveResult {
     const rows = Array.from(document.querySelectorAll(".maze-row"));
     const cells = rows.map((row) =>
         Array.from(row.querySelectorAll<HTMLInputElement>(".maze-cell"))
@@ -776,7 +805,11 @@ function solveMaze(): SolveResult {
         };
     }
 
-    const path = findShortestPath(grid, start, end);
+    const path = solver.solve(
+        grid.map((row) => row.map((isBlocked) => !isBlocked)),
+        start,
+        end,
+    );
     if (!path) {
         return {
             solved: false,
@@ -796,67 +829,6 @@ function solveMaze(): SolveResult {
         solved: true,
         message: `Maze solved in ${path.length} steps, including the start and exit positions.`,
     };
-}
-
-function findShortestPath(grid: boolean[][], start: Point, end: Point): Point[] | null {
-    const rowCount = grid.length;
-    const columnCount = grid[0]?.length ?? 0;
-    if (
-        rowCount === 0 ||
-        columnCount === 0 ||
-        grid.some((row) => row.length !== columnCount) ||
-        start.some((value, axis) => !Number.isInteger(value) || value < 0 || value >= (axis === 0 ? rowCount : columnCount)) ||
-        end.some((value, axis) => !Number.isInteger(value) || value < 0 || value >= (axis === 0 ? rowCount : columnCount)) ||
-        grid[start[0]][start[1]] ||
-        grid[end[0]][end[1]]
-    ) {
-        return null;
-    }
-
-    const queue: Point[] = [start];
-    const visited = Array.from({ length: rowCount }, () => Array<boolean>(columnCount).fill(false));
-    const previous: (Point | null)[][] = Array.from(
-        { length: rowCount },
-        () => Array<Point | null>(columnCount).fill(null)
-    );
-    visited[start[0]][start[1]] = true;
-
-    for (let head = 0; head < queue.length; head++) {
-        const [row, column] = queue[head];
-        if (row === end[0] && column === end[1]) {
-            const path: Point[] = [];
-            let point: Point | null = end;
-            while (point) {
-                path.push(point);
-                if (point[0] === start[0] && point[1] === start[1]) break;
-                point = previous[point[0]][point[1]];
-            }
-            return path.reverse();
-        }
-
-        const neighbors: Point[] = [
-            [row - 1, column],
-            [row + 1, column],
-            [row, column - 1],
-            [row, column + 1],
-        ];
-        for (const [nextRow, nextColumn] of neighbors) {
-            if (
-                nextRow >= 0 &&
-                nextRow < rowCount &&
-                nextColumn >= 0 &&
-                nextColumn < columnCount &&
-                !grid[nextRow][nextColumn] &&
-                !visited[nextRow][nextColumn]
-            ) {
-                visited[nextRow][nextColumn] = true;
-                previous[nextRow][nextColumn] = [row, column];
-                queue.push([nextRow, nextColumn]);
-            }
-        }
-    }
-
-    return null;
 }
 
 export default Maze;

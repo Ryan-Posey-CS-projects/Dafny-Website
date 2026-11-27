@@ -1,9 +1,9 @@
 # Dafny Website
 
-A React and TypeScript website for learning Dafny. It includes an interactive
-maze solver and a source browser with Dafny syntax highlighting. The site uses
-Bootstrap 5, webpack, and React Router's `HashRouter`, so it can be hosted as a
-static site.
+A React and TypeScript website for learning Dafny. It includes interactive maze
+and Traveling Salesman visualizations, plus a source browser with Dafny syntax
+highlighting. The site uses Bootstrap 5, webpack, and React Router's `HashRouter`,
+so it can be hosted as a static site.
 
 ## Pages
 
@@ -15,6 +15,7 @@ static site.
 | Install | `#/install` |
 | Employability | `#/employability` |
 | Maze Solver | `#/maze` |
+| Traveling Salesman | `#/tsp` |
 | Source Code | `#/code` |
 
 ## Development
@@ -29,7 +30,7 @@ npm install
 | Command | Description |
 | --- | --- |
 | `npm run dev` | Start the development server at <http://localhost:8080>. |
-| `npm start` | Serve the production build at <http://localhost:8080>. |
+| `npm start` | Start webpack's development server in production mode. |
 | `npm run typecheck` | Check TypeScript types without building. |
 | `npm run build` | Create the production site in `dist/`. |
 
@@ -64,6 +65,8 @@ src/
   App.tsx                   # Navigation and lazy-loaded routes
   main.tsx                  # React entry point and HashRouter
   browser-process.ts        # Browser-compatible process shim
+  mazeSolverRuntime.ts      # Loads and calls the compiled maze solver
+  travelingSalesmanRuntime.ts # Loads and calls the compiled TSP checker
   index.css                 # Site styles
   index.html                # Webpack HTML template (favicon included here)
   assets.d.ts               # Asset module declarations
@@ -74,7 +77,8 @@ src/
     Documents.tsx           # Docs, tutorials, and papers
     Install.tsx             # Installation guide
     Employability.tsx       # Careers and skills
-    Maze.tsx                # Interactive maze solver
+    Maze.tsx                # Interactive maze UI using the compiled solver
+    TravelingSalesman.tsx   # Interactive traveling salesman visualization
     SourcesPage.tsx         # Loads Dafny source files
     Source.tsx              # Project/file selection and display
     SourceCodePage.tsx      # Syntax-highlighted source viewer
@@ -86,15 +90,23 @@ src/
         firstprog.dfy       # HelloWorld source browser example
         Intro.dfy           # Home page code sample
         sumOfTwoEvens.dfy   # Sum of two evens source browser example
-    maze-solver/
+    Maze-Solver/
         Maze.dfy            # Maze solver Dafny source
         Queue.dfy           # Queue Dafny source
-        Maze.js             # Maze solver compiled to JavaScript
+        Maze.js             # Compiled solver loaded by the maze page
         Maze-js.dtr         # Dafny test/result artifact
+    intermediate/
+        RudimentaryTravelingSalesman.dfy # Traveling Salesman Dafny source
+        RudimentaryTravelingSalesman.js  # Compiled checker loaded by the page
+        RudimentaryTravelingSalesman-js.dtr # Dafny test/result artifact
 package.json                # Dependencies and commands
 tsconfig.json               # TypeScript configuration
 webpack.config.js           # Build, asset, and PurgeCSS configuration
 ```
+
+The maze page invokes `SolveMaze` from the generated `Maze.js` through
+`mazeSolverRuntime.ts`. Webpack emits that file as an asset so its generated
+command-line entry point is not executed in the browser.
 
 ## Adding Dafny code
 
@@ -107,7 +119,7 @@ update the Dafny grammar in `src/pages/DafnyCodeViewer.tsx`.
 ### In the source browser
 
 1. Add the `.dfy` file to the appropriate project folder, such as
-    `src/examples/beginner/` or `src/examples/maze-solver/`.
+    `src/examples/beginner/` or `src/examples/Maze-Solver/`.
 2. Import it in `src/pages/SourcesPage.tsx`.
 3. Add it to the `sourceProjects` list, grouping it with related files or
     creating a new project entry.

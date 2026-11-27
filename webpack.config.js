@@ -29,6 +29,13 @@ module.exports = (env, argv) => {
             rules: [
                 { test: /\.tsx?$/, exclude: /node_modules/, use: 'ts-loader' },
                 {
+                    test: /(?:RudimentaryTravelingSalesman|Maze)\.js$/i,
+                    type: 'asset/resource',
+                    generator: {
+                        filename: 'assets/examples/[name][ext]',
+                    },
+                },
+                {
                     test: /\.css$/,
                     use: [
                         isProduction ? MiniCssExtractPlugin.loader : 'style-loader',
