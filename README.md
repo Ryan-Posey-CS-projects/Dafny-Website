@@ -65,8 +65,7 @@ src/
   App.tsx                   # Navigation and lazy-loaded routes
   main.tsx                  # React entry point and HashRouter
   browser-process.ts        # Browser-compatible process shim
-  mazeSolverRuntime.ts      # Loads and calls the compiled maze solver
-  travelingSalesmanRuntime.ts # Loads and calls the compiled TSP checker
+  dafny-runtime-loader.cjs  # Bundles compiled Dafny examples at build time
   index.css                 # Site styles
   index.html                # Webpack HTML template (favicon included here)
   assets.d.ts               # Asset module declarations
@@ -104,9 +103,11 @@ tsconfig.json               # TypeScript configuration
 webpack.config.js           # Build, asset, and PurgeCSS configuration
 ```
 
-The maze page invokes `SolveMaze` from the generated `Maze.js` through
-`mazeSolverRuntime.ts`. Webpack emits that file as an asset so its generated
-command-line entry point is not executed in the browser.
+Webpack bundles the generated maze and traveling-salesman modules through
+`dafny-runtime-loader.cjs`, which removes their command-line entry points and
+exposes browser-callable adapters. The generated `.js` files remain unchanged,
+and both examples run without runtime source evaluation under the site's
+Content Security Policy.
 
 ## Adding Dafny code
 

@@ -1,7 +1,6 @@
 import 'bootstrap/js/src/modal.js'
 import { useEffect, useLayoutEffect, useRef, useState, type ChangeEvent } from "react";
-import mazeRuntimeUrl from "../examples/maze-solver/Maze.js";
-import { loadMazeSolver, type MazeSolver } from "../mazeSolverRuntime";
+import { solveMaze as runMazeSolver, type MazeSolver } from "../examples/Maze-Solver/Maze.js";
 let newMaze = true;
 const gridSizeOptions = Array.from({ length: 46 }, (_, index) => index + 5);
 const defaultMazeLayout = [
@@ -24,29 +23,11 @@ const defaultMazeLayout = [
 
 function Maze() {
     newMaze = true;
-    const [solver, setSolver] = useState<MazeSolver>();
-    const [solverError, setSolverError] = useState<string>();
     const [rows, setRows] = useState(15);
     const [cols, setCols] = useState(15);
     const [mazeResetKey, setMazeResetKey] = useState(0);
     const [loadedMaze, setLoadedMaze] = useState<SavedMaze | null>(null);
     const autoSolve = true;
-
-    useEffect(() => {
-        let active = true;
-        void loadMazeSolver(mazeRuntimeUrl)
-            .then((loadedSolver) => {
-                if (active) setSolver(loadedSolver);
-            })
-            .catch((error) => {
-                if (active) {
-                    setSolverError(error instanceof Error ? error.message : String(error));
-                }
-            });
-        return () => {
-            active = false;
-        };
-    }, []);
 
     const loadMaze = (maze: SavedMaze) => {
         setRows(maze.rows);
@@ -72,13 +53,6 @@ function Maze() {
         return () =>
             sizeControlsMedia.removeEventListener("change", resetMazeForMobile);
     }, []);
-
-    if (solverError) {
-        return <p className="text-danger" role="alert">Could not load maze solver: {solverError}</p>;
-    }
-    if (!solver) {
-        return <p className="text-body-secondary" role="status">Loading maze solver...</p>;
-    }
 
     return (
         <div className="card maze-solver-card">
@@ -136,7 +110,7 @@ function Maze() {
                         rows={rows}
                         cols={cols}
                         autoSolve={autoSolve}
-                        solver={solver}
+                        solver={runMazeSolver}
                         initialMaze={loadedMaze}
                         onLoadMaze={loadMaze}
                     />
@@ -805,7 +779,7 @@ function solveMaze(solver: MazeSolver): SolveResult {
         };
     }
 
-    const path = solver.solve(
+    const path = solver(
         grid.map((row) => row.map((isBlocked) => !isBlocked)),
         start,
         end,

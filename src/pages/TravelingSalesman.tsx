@@ -1,9 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import tspRuntimeUrl from "../examples/intermediate/RudimentaryTravelingSalesman.js";
 import {
-    loadTravelingSalesman,
-    type CompiledTravelingSalesman,
-} from "../travelingSalesmanRuntime";
+    checkTour as runCompiledTourChecker,
+    type TourChecker,
+} from "../examples/intermediate/RudimentaryTravelingSalesman.js";
 
 type Selection = {
     id: string;
@@ -47,9 +46,9 @@ type TourCheck =
 
 function checkCandidateTour(
     tour: number[],
-    runtime: CompiledTravelingSalesman,
+    checkTour: TourChecker,
 ): TourCheck {
-    const [valid, compiledTotalCost] = runtime.check(tour);
+    const [valid, compiledTotalCost] = checkTour(tour);
     const lengthRule = tour.length === CITY_COUNT;
     const rangeRule = tour.every((city) => city >= 0 && city < CITY_COUNT);
     const seen = new Set<number>();
@@ -210,7 +209,7 @@ function EdgeLayer({
     );
 }
 let newView = true;
-function TravelingSalesmanView({ runtime }: { runtime: CompiledTravelingSalesman }) {
+function TravelingSalesmanView({ checkTour }: { checkTour: TourChecker }) {
     const cityCount = CITY_COUNT;
     const presetTours = PRESET_TOURS;
     const graphAreaRef = useRef<HTMLElement | null>(null);
@@ -248,11 +247,11 @@ function TravelingSalesmanView({ runtime }: { runtime: CompiledTravelingSalesman
         };
     }, []);
 
-    const check = useMemo(() => checkCandidateTour(selection.tour, runtime), [runtime, selection.tour]);
+    const check = useMemo(() => checkCandidateTour(selection.tour, checkTour), [checkTour, selection.tour]);
     const searched = useMemo(
         () =>
             allTours()
-                .map((tour) => ({ tour, result: checkCandidateTour(tour, runtime) }))
+                .map((tour) => ({ tour, result: checkCandidateTour(tour, checkTour) }))
                 .filter(
                     (
                         entry,
@@ -262,7 +261,7 @@ function TravelingSalesmanView({ runtime }: { runtime: CompiledTravelingSalesman
                     } => entry.result.ok,
                 )
                 .sort((a, b) => a.result.totalCost - b.result.totalCost),
-        [runtime],
+        [checkTour],
     );
     if (newView !== false) {
         presetTours.push({ ...searched[0], id: 'best', note: 'Best found tour', label: 'Best Found Tour' });
@@ -542,48 +541,7 @@ function TravelingSalesmanView({ runtime }: { runtime: CompiledTravelingSalesman
 }
 
 function TravelingSalesman() {
-    const [runtime, setRuntime] = useState<CompiledTravelingSalesman>();
-    const [runtimeError, setRuntimeError] = useState<string>();
-
-    useEffect(() => {
-        let active = true;
-        void loadTravelingSalesman(tspRuntimeUrl)
-            .then((loadedRuntime) => {
-                if (active) setRuntime(loadedRuntime);
-            })
-            .catch((error) => {
-                if (active) {
-                    setRuntimeError(error instanceof Error ? error.message : String(error));
-                }
-            });
-        return () => {
-            active = false;
-        };
-    }, []);
-
-    if (runtimeError) {
-        return (
-            <div className="card">
-                <div className="card-body">
-                    <p className="text-danger mb-0" role="alert">
-                        Could not load RudimentaryTravelingSalesman.js: {runtimeError}
-                    </p>
-                </div>
-            </div>
-        );
-    }
-    if (!runtime) {
-        return (
-            <div className="card">
-                <div className="card-body">
-                    <p className="text-body-secondary mb-0" role="status">
-                        Loading RudimentaryTravelingSalesman.js...
-                    </p>
-                </div>
-            </div>
-        );
-    }
-    return <TravelingSalesmanView runtime={runtime} />;
+    return <TravelingSalesmanView checkTour={runCompiledTourChecker} />;
 }
 
 export default TravelingSalesman;

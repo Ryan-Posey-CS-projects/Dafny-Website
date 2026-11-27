@@ -29,11 +29,9 @@ module.exports = (env, argv) => {
             rules: [
                 { test: /\.tsx?$/, exclude: /node_modules/, use: 'ts-loader' },
                 {
-                    test: /(?:RudimentaryTravelingSalesman|Maze)\.js$/i,
-                    type: 'asset/resource',
-                    generator: {
-                        filename: 'assets/examples/[name][ext]',
-                    },
+                    test: /(?:Maze|RudimentaryTravelingSalesman)\.js$/i,
+                    type: 'javascript/auto',
+                    use: path.resolve(__dirname, 'src/dafny-runtime-loader.cjs'),
                 },
                 {
                     test: /\.css$/,
