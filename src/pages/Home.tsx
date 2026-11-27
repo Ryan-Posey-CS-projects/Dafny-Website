@@ -165,6 +165,28 @@ function Home() {
                     </div>
                 </div>
 
+                <section className="mt-3 rounded border border-primary border-2 p-4 text-start" aria-labelledby="home-compare">
+                    <div className="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3">
+                        <div>
+                            <h2 className="h5 mb-1" id="home-compare">
+                                How Dafny compares
+                            </h2>
+                            <p className="text-body-secondary mb-0">
+                                See Dafny side by side with Agda, a dependently typed
+                                proof language, and with Java, C#, and Python — comparing
+                                how each checks correctness, how much proof work they
+                                demand, and how the resulting programs run.
+                            </p>
+                        </div>
+                        <Link
+                            className="btn btn-primary text-nowrap flex-shrink-0"
+                            to="/about#about-comparison"
+                        >
+                            Open the comparison table
+                        </Link>
+                    </div>
+                </section>
+
                 <section className="mt-4" aria-labelledby="home-explore">
                     <h2 className="h4" id="home-explore">
                         Explore the site

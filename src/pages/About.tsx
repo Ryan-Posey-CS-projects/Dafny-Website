@@ -1,38 +1,57 @@
 const comparisonDimensions = [
     { key: 'typicalUse', label: 'Typical use' },
-    { key: 'verification', label: 'Verification and safety' },
+    { key: 'verification', label: 'How correctness is checked' },
+    { key: 'proofEffort', label: 'Proof effort' },
+    { key: 'execution', label: 'How programs run' },
     { key: 'distinction', label: 'Key distinction' },
 ] as const
 
 const Dafny = {
     name: 'Dafny',
     typicalUse: 'Programs whose correctness properties need machine-checked proofs',
-    verification: 'Checks preconditions at call sites and proves postconditions, invariants, and assertions',
-    distinction: 'Specifications are part of the language and checked before code generation'
+    verification: 'Automatic: the Z3 solver discharges verification conditions as you write',
+    proofEffort: 'Mostly automatic — invariants, termination measures, and lemmas only where needed',
+    execution: 'Compiles to C#, Java, JavaScript, Python, Go, and Rust',
+    distinction: 'Specifications are part of the language, checked before code generation'
+};
+
+const Agda = {
+    name: 'Agda',
+    typicalUse: 'Type-safe language research and certified programming where the types carry the proofs',
+    verification: 'Interactive: proofs are terms in a dependently typed language that the type checker verifies',
+    proofEffort: 'Explicit proof terms and pattern matching, written by hand with holes filled in the editor',
+    execution: 'Compiles to Haskell or JavaScript; the same file holds code and proofs',
+    distinction: 'A pure functional language where the type checker is the proof checker'
 };
 
 const Java = {
     name: 'Java',
     typicalUse: 'Backend services, enterprise software, and Android applications',
-    verification: 'Type checking, tests, and static analysis; formal proofs usually use additional tools',
+    verification: 'Type checking, tests, and static analysis; proofs need extra tools',
+    proofEffort: 'None by default — correctness rests on tests and review',
+    execution: 'Runs on the JVM',
     distinction: 'A mature JVM ecosystem with broad library and deployment support'
 };
 
 const CS = {
     name: 'C#',
     typicalUse: '.NET services, desktop applications, and games',
-    verification: 'Type checking, tests, and static analysis; formal proofs usually use additional tools',
+    verification: 'Type checking, tests, and static analysis; proofs need extra tools',
+    proofEffort: 'None by default — correctness rests on tests and review',
+    execution: 'Runs on .NET',
     distinction: 'A broad .NET ecosystem; also a Dafny compilation target'
 };
 
 const Python = {
     name: 'Python',
     typicalUse: 'Scripting, automation, data science, and web applications',
-    verification: 'Tests and optional type or static analysis tools; formal proofs require additional tools',
+    verification: 'Tests and optional type or static analysis tools',
+    proofEffort: 'None by default — correctness rests on tests and review',
+    execution: 'Runs under an interpreter',
     distinction: 'Concise syntax and a large package ecosystem, with dynamic typing'
 };
 
-const comparisonLanguages = [Dafny, Java, CS, Python];
+const comparisonLanguages = [Dafny, Agda, Java, CS, Python];
 
 const milestones = [
     {
@@ -167,18 +186,23 @@ function About() {
                             How Dafny compares
                         </h2>
                         <p className="text-body-secondary mb-0">
-                            Dafny checks preconditions at call sites and can prove
-                            postconditions, loop invariants, and assertions before code
-                            generation.
-                            In C#, Java, and Python, correctness is more commonly
-                            supported through types, tests, and optional analysis or
-                            verification tools. Dafny's proofs cover the properties
-                            specified in the code; they do not prove unspecified behavior
-                            or replace integration and runtime testing.
+                            Dafny next to Agda, a dependently typed proof language, and
+                            next to Java, C#, and Python, three mainstream application
+                            languages. Dafny and Agda both give machine-checked proofs,
+                            but they get there differently: Dafny sends verification
+                            conditions to the Z3 solver and expects proofs mostly
+                            automatically, while Agda makes you write each proof as an
+                            explicit term in its type theory that the type checker then
+                            checks. In C#, Java, and Python, correctness is more
+                            commonly supported through types, tests, and optional
+                            analysis or verification tools. Dafny's proofs cover the
+                            properties specified in the code; they do not prove
+                            unspecified behavior or replace integration and runtime
+                            testing.
                         </p>
-                        
+                         
                     </div>
-                    <div className="d-none d-md-block rounded border">
+                    <div className="d-none d-lg-block rounded border">
                         <table className="comparison-table table table-striped table-hover align-middle mb-0">
                             <caption className="visually-hidden">
                                 Comparison of Dafny with other programming languages
@@ -203,7 +227,7 @@ function About() {
                             </tbody>
                         </table>
                     </div>
-                    <div className="d-md-none">
+                    <div className="d-lg-none">
                         {comparisonLanguages.map((language) => (
                             <article className="rounded border p-3 mb-3" key={language.name}>
                                 <h3 className="h5">{language.name}</h3>

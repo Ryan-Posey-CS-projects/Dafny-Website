@@ -16,6 +16,10 @@ main {
     table-layout: fixed;
 }
 
+.comparison-table th:first-child {
+    width: 7.5rem;
+}
+
 .comparison-table th,
 .comparison-table td {
     overflow-wrap: anywhere;
